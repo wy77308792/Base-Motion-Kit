@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精密方块循环动画 - 最终版</title>
+    <style>
+        @property --bottom-space {
+            syntax: '<length>';
+            inherits: true;
+            initial-value: 16px;
+        }
+
+        :root, html[data-theme='light'] {
+            --bg-color: #FFFFFF;
+            --box-fill: #FFFFFF;
+            --box-stroke: rgba(222, 224, 227, 0.6);
+            --element-bg: #F7F7F8;
+            --icon-color: #A0A5AD;
+            --transition-ease: ease-in-out;
+            --total-duration: 11s;
+
+            /* LM 描边变量 */
+            /* 虚线：#DEE0E3 */
+            --bg-dashed: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='0.5' y='0.5' width='calc(100%25 - 1px)' height='calc(100%25 - 1px)' fill='none' rx='10' ry='10' stroke='%23DEE0E3' stroke-width='1' stroke-dasharray='3 3' stroke-linecap='butt'/%3e%3c/svg%3e");
+            /* 实线：#DEE0E3, 60% 透明度 */
+            --bg-solid: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='0.5' y='0.5' width='calc(100%25 - 1px)' height='calc(100%25 - 1px)' fill='none' rx='10' ry='10' stroke='%23DEE0E3' stroke-opacity='0.6' stroke-width='0.5' stroke-dasharray='0' stroke-linecap='butt'/%3e%3c/svg%3e");
+        }
+
+        html[data-theme='dark'] {
+            --bg-color: #1A1A1A;
+            --box-fill: #242424;
+            --box-stroke: rgba(235, 235, 235, 0.15);
+            --element-bg: #2F2F2F;
+            --icon-color: #6D7178;
+
+            /* DM 描边变量 */
+            /* 虚线：#EBEBEB, 15% 透明度 */
+            --bg-dashed: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='0.5' y='0.5' width='calc(100%25 - 1px)' height='calc(100%25 - 1px)' fill='none' rx='10' ry='10' stroke='%23EBEBEB' stroke-opacity='0.15' stroke-width='1' stroke-dasharray='3 3' stroke-linecap='butt'/%3e%3c/svg%3e");
+            /* 实线：#EBEBEB, 15% 透明度 */
+            --bg-solid: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='0.5' y='0.5' width='calc(100%25 - 1px)' height='calc(100%25 - 1px)' fill='none' rx='10' ry='10' stroke='%23EBEBEB' stroke-opacity='0.15' stroke-width='0.5' stroke-dasharray='0' stroke-linecap='butt'/%3e%3c/svg%3e");
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            transition: background-color 0.3s;
+        }
+
+        .stage {
+            position: relative;
+            width: 262px; 
+            height: 138px;
+        }
+
+        /* 卡片基础样式 */
+        .box {
+            position: absolute;
+            background-color: var(--box-fill);
+            border-radius: 10px;
+            box-sizing: border-box;
+            background-image: var(--bg-dashed);
+            overflow: hidden; 
+            --bottom-space: 16px; 
+            transition: background-color 0.3s, background-image 0.3s;
+        }
+
+        /* 内部内容容器 */
+        .card-content {
+            position: absolute;
+            top: 13px;
+            left: 13px;
+            right: 13px;
+            bottom: var(--bottom-space);
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+        }
+
+        .row-top {
+            display: flex;
+            align-items: center; 
+            gap: 6px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2; 
+            height: 14px; 
+        }
+
+        /* 图标包裹器 */
+        .icon-wrapper {
+            position: relative;
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        /* 大图标样式 */
+        .icon {
+            width: 14px;
+            height: 14px;
+            display: block;
+            color: var(--icon-color);
+        }
+
+        #boxA .icon {
+            animation: rotate-icon var(--total-duration) linear infinite;
+            transform-origin: center center;
+        }
+
+        /* 小图标样式 */
+        .icon-small {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 5px;
+            height: 5px;
+            opacity: 0;
+            transform: scale(0.2); 
+            transform-origin: center center;
+            animation: pop-icon var(--total-duration) linear infinite;
+        }
+
+        .rect-small {
+            width: 40px;
+            height: 10px;
+            background-color: var(--element-bg);
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .content-body-wrapper {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        .rect-large {
+            width: 100%;
+            height: 10px; 
+            background-color: var(--element-bg);
+            border-radius: 8px;
+            margin-top: 10px; 
+        }
+
+        #boxB .rect-large, #boxC .rect-large {
+            height: auto;
+            min-height: 10px;
+            flex-grow: 1;
+            transition: height 0.3s;
+        }
+
+        #boxA .rect-large {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: auto;
+            bottom: 0; 
+            margin-top: 10px;
+            animation: fade-rect-large var(--total-duration) linear infinite;
+        }
+
+        /* --- 遮罩层 --- */
+        .list-mask {
+            position: absolute;
+            top: 10px; 
+            left: 0;
+            width: 100%;
+            bottom: 0;
+            overflow: hidden; 
+            opacity: 0; 
+            animation: fade-list-mask var(--total-duration) linear infinite;
+        }
+
+        .list-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 0px; 
+            animation: scroll-list-group var(--total-duration) linear infinite;
+        }
+
+        .list-bar {
+            position: relative; 
+            height: 8px;
+            background-color: var(--element-bg);
+            border-radius: 8px;
+            flex-shrink: 0;
+            overflow: hidden; 
+        }
+
+        /* 扫光特效 */
+        .list-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 70px; 
+            background: #1F2329; 
+            opacity: 0; 
+            filter: blur(20px); 
+            transform: skewX(-20deg) translateX(-150px); 
+            animation: sweep-effect var(--total-duration) linear infinite;
+        }
+
+        .list-group .list-bar:nth-child(1) { width: 126px; }
+        .list-group .list-bar:nth-child(2) { width: 160px; }
+        .list-group .list-bar:nth-child(3) { width: 204px; }
+        .list-group .list-bar:nth-child(4) { width: 126px; }
+        .list-group .list-bar:nth-child(5) { width: 204px; }
+        .list-group .list-bar:nth-child(6) { width: 160px; }
+        .list-group .list-bar:nth-child(7) { width: 126px; }
+        .list-group .list-bar:nth-child(8) { width: 160px; }
+        .list-group .list-bar:nth-child(9) { width: 204px; }
+        .list-group .list-bar:nth-child(10) { width: 126px; }
+        .list-group .list-bar:nth-child(11) { width: 204px; }
+        .list-group .list-bar:nth-child(12) { width: 160px; }
+
+        /* --- 动画关键帧 --- */
+
+        @keyframes fade-rect-large {
+            0%, 24% { opacity: 1; transform: translateY(0); }
+            25% { opacity: 0.5; } 
+            26%, 74% { opacity: 0; transform: translateY(-5px); pointer-events: none; }
+            76% { opacity: 0.5; } 
+            78%, 100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fade-list-mask {
+            0%, 24% { opacity: 0; }
+            25% { opacity: 0.5; } 
+            26%, 74% { opacity: 1; }
+            76% { opacity: 0.5; } 
+            78%, 100% { opacity: 0; }
+        }
+
+        @keyframes scroll-list-group {
+            0%, 29% { transform: translateY(0); } 
+            31% { transform: translateY(0); animation-timing-function: ease-in-out; } 
+            47% { transform: translateY(-96px); } 
+            74% { transform: translateY(-96px); } 
+            76%, 100% { transform: translateY(-91px); } 
+        }
+
+        @keyframes sweep-effect {
+            0%, 47.9% { transform: skewX(-20deg) translateX(-150px); opacity: 0; }
+            48% { transform: skewX(-20deg) translateX(-150px); opacity: 0.2; animation-timing-function: ease-out; }
+            55.3% { transform: skewX(-20deg) translateX(350px); opacity: 0.2; }
+            55.31%, 56.99% { transform: skewX(-20deg) translateX(-150px); opacity: 0; }
+            57% { transform: skewX(-20deg) translateX(-150px); opacity: 0.2; animation-timing-function: ease-out; }
+            64.3% { transform: skewX(-20deg) translateX(350px); opacity: 0.2; }
+            64.31%, 65.99% { transform: skewX(-20deg) translateX(-150px); opacity: 0; }
+            66% { transform: skewX(-20deg) translateX(-150px); opacity: 0.2; animation-timing-function: ease-out; }
+            73.3% { transform: skewX(-20deg) translateX(350px); opacity: 0.2; }
+            73.31%, 100% { transform: skewX(-20deg) translateX(350px); opacity: 0; }
+        }
+
+        @keyframes rotate-icon {
+            0%, 47.9% { transform: rotate(0deg); }
+            48% { transform: rotate(0deg); animation-timing-function: ease-in-out; }
+            55.3% { transform: rotate(360deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pop-icon {
+            0%, 55.29% { opacity: 0; transform: scale(0.2); }
+            55.3% { opacity: 1; transform: scale(0.2); }
+            56.8% { opacity: 1; transform: scale(1.4); }
+            57.6% { opacity: 1; transform: scale(1); }
+            74% { opacity: 1; transform: scale(1); }
+            76% { opacity: 0; } 
+            100% { opacity: 0; }
+        }
+
+        @keyframes anim-A {
+            0%, 10% { 
+                left: 0; top: 74px; width: 120px; height: 64px; --bottom-space: 16px; 
+                background-image: var(--bg-dashed); box-shadow: none;
+            } 
+            14%, 17% { 
+                left: 0; top: 0; width: 120px; height: 138px; --bottom-space: 13px; 
+                background-image: var(--bg-dashed); box-shadow: none;
+            } 
+            21%, 24% { 
+                left: 0; top: 0; width: 262px; height: 138px; --bottom-space: 13px; 
+                background-image: var(--bg-dashed); box-shadow: none;
+            } 
+            26%, 47% { 
+                left: 0; top: 0; width: 262px; height: 138px; --bottom-space: 13px; 
+                background-image: var(--bg-solid); box-shadow: 0 3px 12px rgba(31, 35, 41, 0.05);
+            } 
+            74% { 
+                left: 0; top: 0; width: 262px; height: 138px; --bottom-space: 13px; 
+                background-image: var(--bg-solid); box-shadow: 0 3px 12px rgba(31, 35, 41, 0.05);
+            } 
+            78%, 81% { 
+                left: 142px; top: 0; width: 120px; height: 138px; --bottom-space: 13px; 
+                background-image: var(--bg-dashed); box-shadow: none;
+            } 
+            85%, 88% { 
+                left: 142px; top: 74px; width: 120px; height: 64px; --bottom-space: 16px; 
+                background-image: var(--bg-dashed); box-shadow: none;
+            } 
+            92%, 95% { 
+                left: 142px; top: 74px; width: 120px; height: 64px; --bottom-space: 16px; 
+                background-image: var(--bg-dashed); box-shadow: none;
+            } 
+            100% { 
+                left: 0; top: 74px; width: 120px; height: 64px; --bottom-space: 16px; 
+                background-image: var(--bg-dashed); box-shadow: none;
+            }
+        }
+
+        @keyframes anim-B {
+            0%, 3% { left: 0; top: 0; width: 120px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            7%, 10% { left: 0; top: 0; width: 262px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            14%, 17% { left: 130px; top: 0; width: 132px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            21%, 47% { left: 262px; top: 0; width: 0px; height: 64px; opacity: 0; --bottom-space: 16px; }
+            74% { left: 0; top: 74px; width: 0px; height: 64px; opacity: 0; --bottom-space: 16px; }
+            78%, 81% { left: 0; top: 74px; width: 132px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            85%, 88% { left: 0; top: 74px; width: 132px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            92%, 95% { left: 0; top: 0; width: 132px; height: 138px; opacity: 1; --bottom-space: 13px; }
+            100% { left: 0; top: 0; width: 120px; height: 64px; opacity: 1; --bottom-space: 16px; }
+        }
+
+        @keyframes anim-C {
+            0%, 3% { left: 130px; top: 0; width: 132px; height: 138px; opacity: 1; --bottom-space: 13px; }
+            7%, 10% { left: 130px; top: 74px; width: 132px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            14%, 17% { left: 130px; top: 74px; width: 132px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            21%, 47% { left: 262px; top: 74px; width: 0px; height: 64px; opacity: 0; --bottom-space: 16px; }
+            74% { left: 0; top: 0; width: 0px; height: 64px; opacity: 0; --bottom-space: 16px; }
+            78%, 81% { left: 0; top: 0; width: 132px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            85%, 88% { left: 0; top: 0; width: 262px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            90%, 93% { left: 142px; top: 0; width: 120px; height: 64px; opacity: 1; --bottom-space: 16px; }
+            100% { left: 130px; top: 0; width: 132px; height: 138px; opacity: 1; --bottom-space: 13px; }
+        }
+
+        #boxA { animation: anim-A var(--total-duration) var(--transition-ease) infinite; }
+        #boxB { animation: anim-B var(--total-duration) var(--transition-ease) infinite; }
+        #boxC { animation: anim-C var(--total-duration) var(--transition-ease) infinite; }
+
+        /* 主题切换按钮演示 - 仅供调试预览 */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--box-stroke);
+            background: var(--box-fill);
+            color: var(--icon-color);
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 100;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="stage">
+        <!-- 卡片 A -->
+        <div id="boxA" class="box">
+            <div class="card-content">
+                <div class="row-top">
+                    <div class="icon-wrapper">
+                        <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5.74902C10.6975 8.42937 8.57106 10.628 5.94434 12.001C8.5708 13.3738 10.6974 15.572 12 18.252C13.3026 15.572 15.4292 13.3738 18.0557 12.001C15.4289 10.628 13.3025 8.42937 12 5.74902ZM23.4971 12.001C23.4971 12.2721 23.2904 12.4965 23.0244 12.5273L22.9004 12.543C22.0266 12.654 21.1824 12.8608 20.3789 13.1543L19.4062 13.5615C16.892 14.7484 14.8593 16.8068 13.6875 19.3535L13.2861 20.3389C12.9986 21.146 12.7948 21.9939 12.6846 22.8711L12.6572 22.999C12.5674 23.2879 12.3071 23.498 12 23.498L11.8721 23.4854C11.6224 23.4363 11.4198 23.2467 11.3428 22.999L11.3154 22.8711C11.2052 21.9939 11.0014 21.146 10.7139 20.3389L10.3125 19.3535C9.14068 16.8068 7.10796 14.7484 4.59375 13.5615L3.62109 13.1543C2.88481 12.8854 2.11439 12.6888 1.31836 12.5723L0.975586 12.5273C0.709649 12.4965 0.50293 12.2721 0.50293 12.001C0.50293 11.7298 0.709649 11.5055 0.975586 11.4746C1.77894 11.3813 2.55774 11.2063 3.30371 10.958L3.62109 10.8477L4.59375 10.4404C7.10796 9.25354 9.14068 7.19513 10.3125 4.64844L10.7139 3.66309C11.0014 2.856 11.2052 2.00802 11.3154 1.13086C11.3598 0.778354 11.6492 0.503907 12 0.503906C12.3508 0.503906 12.6402 0.778353 12.6846 1.13086C12.7948 2.00802 12.9986 2.856 13.2861 3.66309L13.6875 4.64844C14.8593 7.19513 16.892 9.25354 19.4062 10.4404L20.3789 10.8477L20.6963 10.958C21.4423 11.2063 22.2211 11.3813 23.0244 11.4746C23.2904 11.5055 23.4971 11.7298 23.4971 12.001Z"/></svg>
+                        <svg class="icon-small" viewBox="0 0 17 17" fill="none"><path d="M5.68932e-06 8.02323C-0.000323971 7.83435 0.1434 7.67783 0.328608 7.656L0.414982 7.64496C1.02349 7.56659 1.6113 7.42145 2.17065 7.21606L2.84769 6.93121C4.5976 6.10139 6.01105 4.66507 6.82422 2.88967L7.10261 2.2028C7.3019 1.64025 7.44287 1.04932 7.51856 0.438172L7.53746 0.349026C7.59966 0.14771 7.78076 0.000990708 7.99466 0.000617372L8.08379 0.0093053C8.25778 0.0431879 8.39913 0.174972 8.45308 0.347428L8.47228 0.436508C8.55011 1.04739 8.69314 1.63782 8.8944 2.19968L9.17518 2.88556C9.99454 4.65812 11.413 6.08949 13.1658 6.9132L13.8438 7.19568C14.357 7.3821 14.8939 7.51814 15.4486 7.59832L15.6874 7.62919C15.8727 7.65038 16.0169 7.80639 16.0173 7.99527C16.0176 8.18415 15.8739 8.34067 15.6887 8.3625C15.1292 8.42847 14.5869 8.55134 14.0676 8.72519L13.8466 8.80244L13.1696 9.08729C11.4197 9.91712 10.0062 11.3534 9.19306 13.1288L8.91467 13.8157C8.71538 14.3782 8.57441 14.9692 8.49871 15.5803C8.46824 15.8259 8.26699 16.0175 8.02262 16.0179C7.77824 16.0183 7.57633 15.8275 7.545 15.582C7.46717 14.9711 7.32414 14.3807 7.12288 13.8188L6.8421 13.1329C6.02273 11.3604 4.60428 9.92901 2.85149 9.1053L2.17346 8.82282L1.95224 8.74633C1.43231 8.5743 0.889605 8.45332 0.329888 8.38931C0.144604 8.36812 0.000335349 8.21211 5.68932e-06 8.02323Z" fill="currentColor"/></svg>
+                    </div>
+                    <div class="rect-small"></div>
+                </div>
+                <div class="content-body-wrapper">
+                    <div class="rect-large"></div>
+                    <div class="list-mask">
+                        <div class="list-group">
+                            <div class="list-bar"></div><div class="list-bar"></div><div class="list-bar"></div>
+                            <div class="list-bar"></div><div class="list-bar"></div><div class="list-bar"></div>
+                            <div class="list-bar"></div><div class="list-bar"></div><div class="list-bar"></div>
+                            <div class="list-bar"></div><div class="list-bar"></div><div class="list-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片 B -->
+        <div id="boxB" class="box">
+            <div class="card-content">
+                <div class="row-top">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.49496 4.80195C6.14956 4.40342 5.54889 4.34075 5.16405 4.70134C3.21673 6.52595 2 9.12088 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C11.9642 2 11.9284 2.00019 11.8927 2.00056C11.3851 2.0059 11 2.43607 11 2.94365L11 6C11 6.55228 11.4477 7 12 7C12.5523 7 13 6.55228 13 6V4.06189C16.9463 4.55399 20 7.92038 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 9.7688 4.9134 7.75094 6.38667 6.29995C6.79654 5.89628 6.87172 5.23668 6.49496 4.80195Z"/><path d="M13.0673 10.9812C12.9151 10.8263 8.62999 8.10828 8.62999 8.10828C8.5637 8.03805 8.47254 7.99604 8.37604 7.99223C8.27954 7.98842 8.18539 8.02256 8.11377 8.08734C8.04214 8.15211 7.99874 8.24237 7.99287 8.33876C7.987 8.43515 8.01912 8.53001 8.08235 8.603L8.10799 8.62864C8.10799 8.62864 10.8265 12.9165 10.9793 13.0681C11.2563 13.3447 11.6318 13.5 12.0233 13.5C12.4147 13.5 12.7902 13.3447 13.0673 13.0681C13.2044 12.9311 13.3132 12.7685 13.3874 12.5894C13.4616 12.4104 13.4998 12.2185 13.4998 12.0246C13.4998 11.8308 13.4616 11.6389 13.3874 11.4599C13.3132 11.2808 13.2044 11.1182 13.0673 10.9812Z"/></svg>
+                    <div class="rect-small"></div>
+                </div>
+                <div class="rect-large"></div>
+            </div>
+        </div>
+
+        <!-- 卡片 C -->
+        <div id="boxC" class="box">
+            <div class="card-content">
+                <div class="row-top">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 4.25L19.5 19.75L4 19.75L4 4.25L19.5 4.25ZM4 2.25C2.89543 2.25 2 3.14543 2 4.25L2 19.75C2 20.8546 2.89543 21.75 4 21.75L19.5 21.75C20.6046 21.75 21.5 20.8546 21.5 19.75L21.5 4.25C21.5 3.14543 20.6046 2.25 19.5 2.25L4 2.25Z"/><path d="M9.99709 4.25V8.08496L19.5 8.08496V10.085L9.99709 10.085L9.99709 13.915H19.5V15.915H9.99708V19.75H7.99708L7.99708 15.915H4L4 13.915H7.99708L7.99709 10.085H4L4 8.08496H7.99709L7.99709 4.25H9.99709Z"/></svg>
+                    <div class="rect-small"></div>
+                </div>
+                <div class="rect-large"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 演示用切换按钮 -->
+    <button class="theme-toggle" onclick="toggleTheme()">切换主题</button>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            html.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+        }
+    </script>
+
+</body>
+</html>

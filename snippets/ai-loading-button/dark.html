@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magic Particle Button Final Clean</title>
+<style>
+  body {
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  :root {
+    --btn-w: 240px;
+    --btn-h: 42px;
+    --radius: 9999px;
+    
+    /* 边框与光晕渐变 */
+    --gradient-flow: conic-gradient(
+      from 0deg, 
+      #567BFF 0%,
+      #E368FF 24%,
+      #1163BB 54%,
+      #33BAFF 64%,
+      #77EBFF 80%,
+      #567BFF 100%
+    );
+  }
+
+  /* 按钮容器 */
+  .magic-btn-box {
+    position: relative;
+    width: var(--btn-w);
+    height: var(--btn-h);
+    cursor: pointer;
+    isolation: isolate;
+  }
+
+  /* 1. 外部光晕 (Outer Glow) */
+  .glow-container {
+    position: absolute;
+    inset: -2px;
+    border-radius: var(--radius);
+    z-index: -2;
+    overflow: hidden;
+    opacity: 0.4;
+    filter: blur(8px);
+    will-change: transform, opacity, filter;
+    transition: transform 300ms ease, opacity 300ms ease, filter 300ms ease;
+  }
+
+  .glow-rotator {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200%; height: 800%;
+    background: var(--gradient-flow);
+    will-change: transform;
+    animation: spin 3s linear infinite;
+  }
+
+  /* Hover 效果：光晕变大、位移 */
+  .magic-btn-box:hover .glow-container {
+    opacity: 0.7;
+    transform: translateY(4px);
+    filter: blur(10px);
+  }
+
+  /* 2. 流动边框 (Border) */
+  .border-container {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .border-rotator {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200%; height: 800%;
+    background: var(--gradient-flow);
+    will-change: transform;
+    animation: spin 3s linear infinite;
+  }
+
+  /* 3. 按钮主体 (Content) */
+  .content-container {
+    position: absolute;
+    inset: 1px; /* 1px 边框 */
+    background: #1A1A1A;
+    border-radius: var(--radius);
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* 4. 波点遮罩层 */
+  .dots-mask-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    /* 定义 SVG 波点遮罩 */
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='5' height='5' viewBox='0 0 5 5' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='3' height='3' rx='1' ry='1' fill='black'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg width='5' height='5' viewBox='0 0 5 5' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='3' height='3' rx='1' ry='1' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-size: 5px 5px;
+    mask-size: 5px 5px;
+    -webkit-mask-repeat: repeat;
+    mask-repeat: repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  /* 4.1 内部彩色渐变扫过 */
+  .dots-gradient-sweep {
+    position: absolute;
+    top: 0; 
+    left: 10%; 
+    width: 80%; 
+    height: 100%;
+    
+    background: linear-gradient(
+      90deg,
+      rgba(188, 130, 255, 0) 0%,
+      rgb(188, 130, 255, 1) 14%,
+      rgb(36, 113, 255, 1) 49%,
+      rgb(0, 225, 255, 1) 76%,
+      rgba(106, 238, 255, 0) 100%
+    );
+    
+    transform: skewX(-20deg) translateX(-180%);
+    filter: blur(12px);
+    will-change: transform, opacity;
+    
+    /* 中间最快：Ease-In-Out */
+    animation: sweep-gradient 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  /* 4.2 内部白光扫过 */
+  .dots-shine-sweep {
+    position: absolute;
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    
+    background: linear-gradient(
+      90deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 70%
+    );
+    
+    transform: skewX(-20deg) translateX(-180%);
+    filter: blur(5px);
+    will-change: transform, opacity;
+    
+    /* 中间最快：Ease-In-Out */
+    animation: sweep-shine 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  /* 5. 文字 */
+  .btn-text {
+    position: relative;
+    z-index: 3;
+    color: #ffffff;
+    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+  }
+
+  /* =========================================
+     动画关键帧 (Keyframes)
+     ========================================= */
+  
+  @keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* 扫光逻辑说明：
+     使用 cubic-bezier 控制全程位移，
+     移除中间帧的 transform 定义，确保中间速度达到峰值 (慢-快-慢)。
+  */
+
+  /* 彩色渐变 (0% -> 50%) */
+  @keyframes sweep-gradient {
+    0% { transform: skewX(-20deg) translateX(-150%); opacity: 0; }
+    5% { opacity: 0.3; }
+    25% { opacity: 0.7; } /* 中间位置，仅控制透明度 */
+    45% { opacity: 0.3; }
+    50% { transform: skewX(-20deg) translateX(150%); opacity: 0; }
+    100% { transform: skewX(-20deg) translateX(150%); opacity: 0; }
+  }
+
+  /* 白光 (0% -> 45%) */
+  @keyframes sweep-shine {
+    0%, 5% { transform: skewX(-20deg) translateX(-150%); opacity: 0; }
+    10% { opacity: 1; }
+    25% { opacity: 1; } /* 中间位置，仅控制透明度 */
+    45% { transform: skewX(-20deg) translateX(150%); opacity: 0; }
+    100% { transform: skewX(-20deg) translateX(150%); opacity: 0; }
+  }
+
+  /* =========================================
+     页面底图 + 叠加按钮
+     ========================================= */
+  .screen {
+    position: relative;
+    display: inline-block;
+    border-radius: 0;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .screen-img {
+    display: block;
+    height: auto;
+  }
+
+  /* 以页面左上角为 (0,0)，把按钮放到指定坐标 */
+  .btn-overlay {
+    position: absolute;
+    left: 1146px;
+    top: 662px;
+    z-index: 10;
+  }
+
+</style>
+</head>
+<body>
+
+  <div class="screen">
+    <img class="screen-img" src="asset/System Overview DM.png" data-fallback-src="anset/System%20Overview.png" alt="System Overview" />
+
+    <div class="btn-overlay">
+      <div class="magic-btn-box">
+        
+        <!-- 1. 光晕层 -->
+        <div class="glow-container">
+          <div class="glow-rotator"></div>
+        </div>
+        
+        <!-- 2. 边框层 -->
+        <div class="border-container">
+          <div class="border-rotator"></div>
+        </div>
+
+        <!-- 3. 内容层 -->
+        <div class="content-container">
+          
+          <!-- 4. 波点层 (自动循环) -->
+          <div class="dots-mask-layer">
+            <div class="dots-gradient-sweep"></div>
+            <div class="dots-shine-sweep"></div>
+          </div>
+          
+          <!-- 5. 文字 -->
+          <span class="btn-text">Start Building</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 该 PNG 是 2x 切图：在页面里按 1x（宽高减半）展示，坐标按 1x 计算。
+    (function () {
+      const img = document.querySelector(".screen-img");
+      if (!img) return;
+
+      let triedFallback = false;
+
+      // 目录名容错：优先 asset/，失败则尝试 anset/
+      img.addEventListener("error", () => {
+        if (triedFallback) return;
+        const fallback = img.getAttribute("data-fallback-src");
+        if (!fallback) return;
+        triedFallback = true;
+        img.src = fallback;
+      });
+
+      const apply1xSize = () => {
+        if (!img.naturalWidth || !img.naturalHeight) return;
+        const halfWidth = img.naturalWidth / 2;
+        const halfHeight = img.naturalHeight / 2;
+        img.style.width = halfWidth + "px";
+        img.style.height = halfHeight + "px";
+      };
+
+      if (img.complete && img.naturalWidth) {
+        apply1xSize();
+      } else {
+        img.addEventListener("load", apply1xSize, { once: true });
+      }
+    })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>双方块无缝动画 (Square A & B)</title>
+    <style>
+        /* * 全局重置与环境设置 */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #F8F8F9;
+            font-family: sans-serif;
+            overflow: hidden;
+            /* 新增：背景色过渡动画 */
+            transition: background-color 200ms ease-in-out;
+        }
+
+        /* 新增：当 stage 被悬停时，改变 body 背景色 */
+        body:has(.stage:hover) {
+            background-color: #EDEDEE;
+        }
+
+        /* * 舞台容器 */
+        .stage {
+            position: relative;
+            width: 100px;
+            height: 120px;
+            cursor: pointer;
+        }
+
+        /* * 通用方块容器 */
+        .block {
+            position: absolute;
+            width: 80px;
+            transform-origin: center center;
+            will-change: transform;
+            /* Flex 布局确保 SVG 居中 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* * SVG 样式重置 */
+        .block svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            overflow: visible; /* 防止描边被切断 */
+        }
+
+        /* * 方块 A (上层) */
+        .block-a {
+            height: 94px;
+            z-index: 2;
+            left: 0px;
+            top: 0px;
+            transition: transform 200ms ease-in-out, filter 200ms ease-in-out;
+            filter: drop-shadow(-2px 2px 6px rgba(31, 35, 41, 0));
+        }
+
+        /* * 方块 B (下层) */
+        .block-b {
+            height: 84px;
+            z-index: 1;
+            left: 0px;
+            top: 10px;
+            transition: transform 200ms ease-in-out;
+        }
+
+        /* * 折角三角形样式 */
+        .triangle-fold {
+            fill: #ffffff;
+            stroke: #E5E6E9;
+            stroke-width: 1;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+            filter: drop-shadow(-2px 2px 6px rgba(31, 35, 41, 0.03));
+        }
+
+        /* * Excel 图标样式 (独立层级) */
+        .icon-excel {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            
+            /* 位置调整：-18px -> -20px (整体左移2px) */
+            left: -20px;
+            
+            /* 位置调整：50px -> 46px (整体上移4px) */
+            top: 46px;
+            
+            transform: rotate(-30deg);
+            z-index: 10;
+            filter: drop-shadow(0px 4px 16px rgba(53, 189, 75, 0.3));
+            transition: transform 200ms ease-in-out;
+            pointer-events: none;
+        }
+
+        /* * Bitable 图标样式 */
+        .icon-bitable {
+            position: absolute;
+            width: 31px;
+            height: 31px;
+            left: 42px;
+            top: 49px;
+            transform: rotate(15deg);
+            z-index: 10;
+            transition: transform 200ms ease-in-out;
+            pointer-events: none;
+        }
+
+        /* * Sheet 图标样式 (新增) */
+        .icon-sheet {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            
+            /* 位置调整：x=72 (保持不变), y=20 -> 16 (向上移4px) */
+            left: 72px;
+            top: 16px;
+            
+            /* 旋转：顺时针 20度 */
+            transform: rotate(20deg);
+            z-index: 10;
+
+            /* 新增：不透明度 30% */
+            opacity: 0.3;
+            
+            /* 动画过渡 */
+            transition: transform 200ms ease-in-out;
+            pointer-events: none;
+        }
+
+        /* * 交互触发定义 (第二帧 Hover 状态) */
+        
+        /* 1. 方块 A 旋转并移动 */
+        .stage:hover .block-a {
+            transform: translate(12px, 0) rotate(15deg);
+            filter: drop-shadow(-2px 2px 6px rgba(31, 35, 41, 0.03));
+        }
+
+        /* 2. 方块 B 旋转并移动 */
+        .stage:hover .block-b {
+            transform: translate(-12px, 0) rotate(-10deg);
+        }
+
+        /* 3. Excel 图标动画 */
+        .stage:hover .icon-excel {
+            transform: translate(-16px, -7px) rotate(-45deg);
+        }
+        
+        /* 4. Bitable 图标动画 */
+        .stage:hover .icon-bitable {
+            /* 目标位置: x=68 (保持不变), y=40
+               初始位置: x=42, y=49
+               位移计算:
+               X: 68 - 42 = 26px
+               Y: 40 - 49 = -9px
+               旋转: 保持顺时针旋转到 45度
+            */
+            transform: translate(26px, -9px) rotate(45deg);
+        }
+
+        /* 5. Sheet 图标动画 (调整) */
+        .stage:hover .icon-sheet {
+            /* 向右上方飞出，并加大旋转角度 */
+            /* 原 x=15, 现 x=25 (增加10px) */
+            transform: translate(25px, -5px) rotate(40deg);
+        }
+
+        /* * 交互提示 */
+        .hint {
+            position: absolute;
+            bottom: 20px;
+            color: #666;
+            font-size: 12px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stage">
+        <!-- 方块 B (下层) -->
+        <div class="block block-b">
+            <svg width="80" height="84" viewBox="0 0 80 84">
+                <!-- 修改：方块 B 填充颜色 & 描边颜色
+                     Fill: rgba(31, 35, 41, 0.03) (保持不变)
+                     Stroke: #1F2329 at 15% opacity -> rgba(31, 35, 41, 0.15)
+                -->
+                <path d="M 40 83.5 
+                         L 10.5 83.5 
+                         Q 0.5 83.5 0.5 73.5 
+                         L 0.5 10.5 
+                         Q 0.5 0.5 10.5 0.5 
+                         L 55 0.5 
+                         L 79.5 25 
+                         L 79.5 73.5 
+                         Q 79.5 83.5 69.5 83.5 
+                         L 40 83.5 
+                         Z" 
+                      fill="rgba(31, 35, 41, 0.03)" 
+                      stroke="rgba(31, 35, 41, 0.15)" 
+                      stroke-width="1"
+                      stroke-dasharray="3.5 3.5" 
+                      stroke-linecap="round" />
+            </svg>
+        </div>
+
+        <!-- 方块 A (上层) -->
+        <div class="block block-a">
+            <svg width="80" height="94" viewBox="0 0 80 94">
+                <path d="M 10.5 0.5 
+                         L 51.7 0.5 
+                         Q 55 0.5 57.3 2.8 
+                         L 77.2 22.7 
+                         Q 79.5 25 79.5 28.3 
+                         L 79.5 83.5 
+                         Q 79.5 93.5 69.5 93.5 
+                         L 10.5 93.5 
+                         Q 0.5 93.5 0.5 83.5 
+                         L 0.5 10.5 
+                         Q 0.5 0.5 10.5 0.5 
+                         Z" 
+                      fill="#ffffff" 
+                      stroke="#E5E6E9" 
+                      stroke-width="1" />
+                
+                <rect x="12.5" y="16.5" width="31" height="7" rx="4" fill="rgba(31, 35, 41, 0.05)" />
+                <rect x="12.5" y="30.5" width="16" height="7" rx="4" fill="rgba(31, 35, 41, 0.05)" />
+
+                <path class="triangle-fold"
+                      d="M 57.3 2.8 
+                         Q 55 0.5 55 3.8 
+                         L 55 15 
+                         Q 55 25 65 25 
+                         L 76.2 25 
+                         Q 79.5 25 77.2 22.7 
+                         Z" />
+            </svg>
+        </div>
+
+        <!-- Excel 图标 -->
+        <div class="icon-excel">
+            <svg width="36" height="36" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4.75 4.74998C4.75 3.00108 6.16777 1.58331 7.91667 1.58331L23.0942 1.58331C23.5141 1.58331 23.9168 1.75013 24.2137 2.04706L32.7863 10.6196C33.0832 10.9165 33.25 11.3192 33.25 11.7392V33.25C33.25 34.9989 31.8322 36.4166 30.0833 36.4166H7.91667C6.16776 36.4166 4.75 34.9989 4.75 33.25L4.75 4.74998Z" fill="#35BD4B"/>
+                <path opacity="0.9" d="M23.75 2.06616C23.75 1.88798 23.9654 1.79874 24.0914 1.92473L32.9086 10.7419C33.0346 10.8679 32.9453 11.0833 32.7672 11.0833H26.9167C25.1678 11.0833 23.75 9.66555 23.75 7.91665V2.06616Z" fill="#32A645"/>
+                <path d="M13.5322 15.6893H15.261C15.3376 15.6893 15.4094 15.727 15.4529 15.7901L18.7757 20.6052L22.116 15.7896C22.1595 15.7268 22.2311 15.6893 22.3076 15.6893H24.036C24.1648 15.6893 24.2692 15.7937 24.2692 15.9225C24.2692 15.971 24.2541 16.0184 24.2259 16.0579L19.8987 22.1279L24.5702 28.7075C24.6447 28.8125 24.6201 28.9581 24.515 29.0326C24.4756 29.0607 24.4284 29.0757 24.3801 29.0757H22.6514C22.5749 29.0757 22.5032 29.0381 22.4597 28.9752L18.7756 23.6506L15.1092 28.9748C15.0657 29.038 14.9939 29.0757 14.9172 29.0757H13.1883C13.0595 29.0757 12.9551 28.9713 12.9551 28.8425C12.9551 28.7944 12.9699 28.7475 12.9976 28.7082L17.6343 22.1278L13.3418 16.0571C13.2675 15.952 13.2925 15.8065 13.3976 15.7321C13.437 15.7043 13.484 15.6893 13.5322 15.6893Z" fill="white"/>
+            </svg>
+        </div>
+
+        <!-- Bitable 图标 -->
+        <div class="icon-bitable">
+            <svg width="66" height="68" viewBox="0 0 66 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g filter="url(#filter0_d_3919_375221)">
+                <path d="M20 17C20 16.4477 20.4477 16 21 16H38.4865C40.3024 16 42.0439 16.6941 43.3279 17.9296C44.612 19.1652 45.3333 20.8409 45.3333 22.5882V43C45.3333 43.5523 44.8856 44 44.3333 44H26.8468C25.031 44 23.2894 43.3059 22.0054 42.0704C20.7214 40.8348 20 39.1591 20 37.4118V17Z" fill="#8D55ED"/>
+                <path d="M32.6673 25.0133L37.654 30L32.6673 34.98L27.6807 30L32.6673 25.0133ZM27.6807 30L25.334 33.0333L29.634 37.3334L32.6673 34.98L35.7007 37.3334L40.0007 33.0333L37.654 30L40.0007 26.9667L35.7007 22.6667L32.6673 25.0133L29.634 22.6667L25.334 26.9667L27.6807 30Z" fill="white"/>
+                </g>
+                <defs>
+                <filter id="filter0_d_3919_375221" x="-3.33301" y="-2" width="72" height="72" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                <feOffset dy="4"/>
+                <feGaussianBlur stdDeviation="10"/>
+                <feComposite in2="hardAlpha" operator="out"/>
+                <feColorMatrix type="matrix" values="0 0 0 0 0.501961 0 0 0 0 0.27451 0 0 0 0 0.952941 0 0 0 0.2 0"/>
+                <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_3919_375221"/>
+                <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_3919_375221" result="shape"/>
+                </filter>
+                </defs>
+            </svg>
+        </div>
+
+        <!-- Sheet 图标 (新增) -->
+        <div class="icon-sheet">
+            <svg width="62" height="64" viewBox="0 0 62 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g filter="url(#filter0_d_3919_375224)">
+                <path d="M20 17C20 16.4477 20.4477 16 21 16H35.598C37.1301 16 38.5995 16.5857 39.683 17.6281C40.7664 18.6706 41.375 20.0845 41.375 21.5588V38.625C41.375 39.1773 40.9273 39.625 40.375 39.625H25.777C24.2449 39.625 22.7755 39.0393 21.6921 37.9969C20.6086 36.9544 20 35.5405 20 34.0662V17Z" fill="#35BD4B"/>
+                <path d="M24.7812 21.9062H33.9091C35.3918 21.9062 36.5937 23.1082 36.5937 24.5909V33.7187H27.4659C25.9832 33.7187 24.7812 32.5168 24.7812 31.0341V21.9062ZM31.4487 23.517V27.0071H34.983V24.5909C34.983 23.9978 34.5022 23.517 33.9091 23.517H31.4487ZM29.8379 23.517H26.392V27.0071H29.8379V23.517ZM26.392 28.6179V31.0341C26.392 31.6272 26.8728 32.108 27.4659 32.108H29.8379V28.6179H26.392ZM31.4487 32.108H34.983V28.6179H31.4487V32.108Z" fill="white"/>
+                </g>
+                <defs>
+                <filter id="filter0_d_3919_375224" x="-2.8125" y="-1.6875" width="67" height="67" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                <feOffset dy="4"/>
+                <feGaussianBlur stdDeviation="10"/>
+                <feComposite in2="hardAlpha" operator="out"/>
+                <feColorMatrix type="matrix" values="0 0 0 0 0.207843 0 0 0 0 0.741176 0 0 0 0 0.294118 0 0 0 0.3 0"/>
+                <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_3919_375224"/>
+                <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_3919_375224" result="shape"/>
+                </filter>
+                </defs>
+            </svg>
+        </div>
+
+    </div>
+
+    <div class="hint">Hover to Interact (200ms)</div>
+
+</body>
+</html>

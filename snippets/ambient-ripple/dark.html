@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas Vision - Refined Delayed Mouse Trail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --c1: #0092cc;
+            --c2: #006aff;
+            --c3: #ae00ff;
+        }
+
+        body {
+            background-color: transparent; 
+            margin: 0;
+            overflow: hidden;
+            font-family: sans-serif;
+            position: relative;
+        }
+
+        .stage-under-bg {
+            position: absolute;
+            left: 0; top: 0;
+            width: 1728px; height: 1117px;
+            display: block;
+            z-index: -2; 
+        }
+
+        .stage {
+            position: relative;
+            width: 1728px;
+            height: 1117px;
+            z-index: 0;
+        }
+
+        .vision-container {
+            position: absolute;
+            left: 240px;
+            top: 64px;
+            width: 1132px;
+            height: 1053px;
+            border-radius: 4px;
+            background-color: transparent; 
+            overflow: hidden;
+            isolation: isolate;
+            z-index: 1;
+        }
+
+        #masked-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            -webkit-mask: url(#vision-mask);
+            mask: url(#vision-mask);
+            opacity: 0;
+            animation: layer-fade-in 0.8s ease-out forwards;
+        }
+
+        .blobs-container {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            transform: scale(1.2); 
+        }
+
+        .color-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px); 
+            will-change: transform, opacity;
+        }
+
+        @keyframes flow-cycle-A {
+            0% { background-color: var(--c1); transform: translate(0, 0) scale(1); opacity: 1; }
+            33% { background-color: var(--c2); transform: translate(150px, -110px) scale(1.8); opacity: 0.3; } 
+            66% { background-color: var(--c3); transform: translate(-110px, 110px) scale(0.6); opacity: 0.9; } 
+            100% { background-color: var(--c1); transform: translate(0, 0) scale(1); opacity: 1; }
+        }
+        @keyframes flow-cycle-B {
+            0% { background-color: var(--c3); transform: translate(0, 0) scale(0.8); opacity: 0.4; }
+            50% { background-color: var(--c1); transform: translate(-130px, -90px) scale(1.6); opacity: 1; } 
+            100% { background-color: var(--c3); transform: translate(0, 0) scale(0.8); opacity: 0.4; }
+        }
+        @keyframes flow-cycle-C {
+            0% { background-color: var(--c2); transform: translate(0, 0) scale(0.6); opacity: 0.4; }
+            25% { background-color: var(--c3); transform: translate(75px, 35px) scale(0.8); opacity: 0.8; } 
+            50% { background-color: var(--c1); transform: translate(35px, 110px) scale(1); opacity: 1; } 
+            75% { background-color: var(--c2); transform: translate(-75px, -60px) scale(0.8); opacity: 0.8; } 
+            100% { background-color: var(--c2); transform: translate(0, 0) scale(0.6); opacity: 0.4; }
+        }
+
+        .blob-1 { width: 700px; height: 700px; top: -200px; left: -200px; animation: flow-cycle-A 3.5s infinite ease-in-out; } 
+        .blob-2 { width: 800px; height: 800px; top: -200px; right: -200px; animation: flow-cycle-B 4.5s infinite ease-in-out; animation-delay: -2.5s; } 
+        .blob-3 { width: 700px; height: 700px; bottom: -200px; left: -150px; animation: flow-cycle-C 3s infinite ease-in-out; animation-delay: -1s; } 
+        .blob-4 { width: 750px; height: 750px; bottom: -200px; right: -200px; animation: flow-cycle-A 4s infinite reverse ease-in-out; animation-delay: -5s; } 
+
+        #matrix-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        @keyframes layer-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <img src="asset/Table-3x.png" alt="" class="stage-under-bg" onerror="this.style.border='1px dashed #444'; this.alt='背景图(占位)'">
+
+    <div class="stage">
+        <div class="vision-container" id="container">
+            <svg width="0" height="0" style="position: absolute; pointer-events: none;">
+                <defs>
+                    <filter id="blur-edge" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur id="fe-blur-edge" stdDeviation="20" />
+                    </filter>
+                    <filter id="blur-ripple" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur id="fe-blur-ripple" stdDeviation="35" /> 
+                    </filter>
+                    
+                    <filter id="blur-mouse" x="-100%" y="-100%" width="300%" height="300%">
+                        <feGaussianBlur id="fe-blur-mouse" stdDeviation="15" /> 
+                    </filter>
+
+                    <mask id="vision-mask" maskUnits="userSpaceOnUse" x="0" y="0">
+                        <rect width="100%" height="100%" fill="black" />
+                        <rect id="mask-edge" x="0" y="0" fill="none" stroke="white" stroke-width="30" filter="url(#blur-edge)" opacity="0.6" />
+                        <path id="mask-ripple" d="" fill="white" filter="url(#blur-ripple)" opacity="0" />
+                        
+                        <circle id="mask-mouse" cx="-500" cy="-500" r="0" fill="white" filter="url(#blur-mouse)" opacity="0" />
+                    </mask>
+                </defs>
+            </svg>
+
+            <div id="masked-layer">
+                <div class="blobs-container">
+                    <div class="color-blob blob-1"></div>
+                    <div class="color-blob blob-2"></div>
+                    <div class="color-blob blob-3"></div>
+                    <div class="color-blob blob-4"></div>
+                </div>
+                <canvas id="matrix-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================
+        // 【1】白点 Canvas 矩阵代码 (完全保留不变)
+        // =========================================================
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('container');
+        const CONFIG = { spacing: 10, baseSize: 2, baseRadius: 0.6, dotColor: '255, 255, 255', baseAlpha: 0.7, activeSize: 3, activeRadius: 1, activeAlpha: 1.0, glowBlur: 6, activeRate: 0.10, invisibleRate: 0.25, changeSpeed: 0.2, fadeStep: 0.3 };
+        let baseSprite, activeSprite, activeSpriteOffset, width, height, cols, rows, updatesPerFrame, targetState, currentState;
+
+        function createSprites() {
+            const baseCvs = document.createElement('canvas'); baseCvs.width = CONFIG.baseSize; baseCvs.height = CONFIG.baseSize;
+            const bCtx = baseCvs.getContext('2d'); bCtx.fillStyle = `rgba(${CONFIG.dotColor}, ${CONFIG.baseAlpha})`;
+            drawRoundedRect(bCtx, 0, 0, CONFIG.baseSize, CONFIG.baseSize, CONFIG.baseRadius); bCtx.fill(); baseSprite = baseCvs;
+            const padding = CONFIG.glowBlur * 2; const size = CONFIG.activeSize + padding * 2;
+            const activeCvs = document.createElement('canvas'); activeCvs.width = size; activeCvs.height = size;
+            const aCtx = activeCvs.getContext('2d'); aCtx.translate(padding, padding); aCtx.fillStyle = `rgba(${CONFIG.dotColor}, ${CONFIG.activeAlpha})`; aCtx.shadowColor = "white"; aCtx.shadowBlur = CONFIG.glowBlur;
+            drawRoundedRect(aCtx, 0, 0, CONFIG.activeSize, CONFIG.activeSize, CONFIG.activeRadius); aCtx.fill(); activeSprite = activeCvs;
+            activeSpriteOffset = padding + (CONFIG.activeSize - CONFIG.baseSize) / 2;
+        }
+
+        function resize() {
+            width = container.clientWidth; height = container.clientHeight;
+            const visionMask = document.getElementById('vision-mask'); const maskEdge = document.getElementById('mask-edge');
+            if(visionMask) { visionMask.setAttribute('width', width); visionMask.setAttribute('height', height); }
+            if(maskEdge) { maskEdge.setAttribute('width', width); maskEdge.setAttribute('height', height); }
+            canvas.width = width; canvas.height = height;
+            cols = Math.ceil(width / CONFIG.spacing); rows = Math.ceil(height / CONFIG.spacing);
+            const total = cols * rows; targetState = new Int8Array(total); currentState = new Float32Array(total); updatesPerFrame = Math.floor(total * CONFIG.changeSpeed);
+            for (let i = 0; i < total; i++) {
+                const rand = Math.random(); let state = (rand < CONFIG.activeRate) ? 1 : (rand < CONFIG.activeRate + CONFIG.invisibleRate ? -1 : 0);
+                targetState[i] = state; currentState[i] = state; 
+            }
+            createSprites();
+        }
+        window.addEventListener('resize', resize); resize();
+
+        function drawRoundedRect(ctx, x, y, width, height, radius) {
+            if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, width, height, radius); return; }
+            ctx.beginPath(); ctx.moveTo(x + radius, y); ctx.lineTo(x + width - radius, y); ctx.quadraticCurveTo(x + width, y, x + width, y + radius); ctx.lineTo(x + width, y + height - radius); ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height); ctx.lineTo(x + radius, y + height); ctx.quadraticCurveTo(x, y + height, x, y + height - radius); ctx.lineTo(x, y + radius); ctx.quadraticCurveTo(x, y, x + radius, y);
+        }
+
+        function lerp(start, end, t) { return start * (1 - t) + end * t; }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            const totalPixels = cols * rows;
+            for(let k = 0; k < updatesPerFrame; k++) {
+                const idx = Math.floor(Math.random() * totalPixels);
+                const rand = Math.random();
+                if (rand < CONFIG.activeRate) targetState[idx] = 1; else if (rand < CONFIG.activeRate + CONFIG.invisibleRate) targetState[idx] = -1; else targetState[idx] = 0; 
+            }
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    const idx = j * cols + i; const target = targetState[idx]; let current = currentState[idx];
+                    if (current !== target) {
+                        if (Math.abs(current - target) < CONFIG.fadeStep) current = target; else if (current < target) current += CONFIG.fadeStep; else current -= CONFIG.fadeStep;
+                        currentState[idx] = current;
+                    }
+                    if (current <= -0.99) continue;
+                    const x = i * CONFIG.spacing; const y = j * CONFIG.spacing;
+                    if (Math.abs(current) < 0.01) { ctx.drawImage(baseSprite, x, y); continue; }
+                    if (current >= 0.99) { ctx.drawImage(activeSprite, x - activeSpriteOffset + (CONFIG.activeSize - CONFIG.baseSize)/2, y - activeSpriteOffset + (CONFIG.activeSize - CONFIG.baseSize)/2); continue; }
+                    let size = (current < 0) ? CONFIG.baseSize : lerp(CONFIG.baseSize, CONFIG.activeSize, current);
+                    let r = (current < 0) ? CONFIG.baseRadius : lerp(CONFIG.baseRadius, CONFIG.activeRadius, current);
+                    let alpha = (current < 0) ? lerp(0, CONFIG.baseAlpha, current + 1) : lerp(CONFIG.baseAlpha, CONFIG.activeAlpha, current);
+                    const offset = (size - CONFIG.baseSize) / 2; ctx.fillStyle = `rgba(${CONFIG.dotColor}, ${alpha})`;
+                    if (current > 0.5) { ctx.shadowColor = "white"; ctx.shadowBlur = lerp(0, CONFIG.glowBlur, current); } else { ctx.shadowBlur = 0; }
+                    drawRoundedRect(ctx, x - offset, y - offset, size, size, r); ctx.fill(); ctx.shadowBlur = 0; 
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // =========================================================
+        // 【2】中枢控制逻辑
+        // =========================================================
+        const maskEdge = document.getElementById('mask-edge');
+        const feBlurEdge = document.getElementById('fe-blur-edge');
+        const maskRipple = document.getElementById('mask-ripple');
+        const maskMouse = document.getElementById('mask-mouse');
+        const feBlurMouse = document.getElementById('fe-blur-mouse');
+
+        let rippleT = 0; 
+        let animTime = 0;
+        
+        // 涟漪逻辑变量
+        let loopStartTime = performance.now(); 
+        let isWaiting = false;
+        let waitStartTime = 0;
+
+        // --- 鼠标延迟弥散引擎变量 ---
+        let mouseHistory = []; // 时间戳坐标队列
+        const DELAY_MS = 100;  // 100 毫秒的物理延迟
+        
+        let lastDelayedX = -500;
+        let lastDelayedY = -500;
+        let smoothedSpeed = 0; // 平滑后的运动速度
+        
+        // 呈现渲染用的过渡值
+        let currentMouseRadius = 0;
+        let currentMouseOpacity = 0;
+        let currentMouseBlur = 15;
+
+        // 收集实时鼠标坐标进入历史队列
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            mouseHistory.push({ x, y, t: performance.now() });
+        });
+
+        // 涟漪路径生成 (维持不变)
+        function getOrganicPath(cx, cy, baseRx, baseRy, time, percentage) {
+            let outerPoints = [], innerPoints = []; const segments = 80; 
+            let dynAmp = Math.min(1, Math.max(0, percentage / 0.6));
+            
+            const strokeWidth = 30 + (percentage * 108.33); 
+
+            for (let i = 0; i <= segments; i++) {
+                let angle = (i / segments) * Math.PI * 2;
+                let wobbleCenter = (Math.sin(time * 2.5) * 6 + Math.cos(time * 1.8) * 4) * dynAmp;
+                let wobbleRad = (Math.sin(angle * 4 + time * 3) * 16 + Math.cos(angle * 3 - time * 2) * 12) * dynAmp;
+                let thickFactor = 1.0 + (Math.sin(angle * 5 + time * 2) * 0.2 + Math.cos(angle * 3 - time * 1.5) * 0.1) * dynAmp;
+                const halfThick = (strokeWidth / 2) * thickFactor;
+                let xO = cx + wobbleCenter + (baseRx + wobbleRad + halfThick) * Math.cos(angle);
+                let yO = cy + wobbleCenter + (baseRy + wobbleRad + halfThick) * Math.sin(angle);
+                outerPoints.push(`${i === 0 ? 'M' : 'L'} ${xO.toFixed(1)} ${yO.toFixed(1)}`);
+                let xI = cx + wobbleCenter + Math.max(1, baseRx + wobbleRad - halfThick) * Math.cos(angle);
+                let yI = cy + wobbleCenter + Math.max(1, baseRy + wobbleRad - halfThick) * Math.sin(angle);
+                innerPoints.push(`${xI.toFixed(1)} ${yI.toFixed(1)}`);
+            }
+            return outerPoints.join(' ') + ' L ' + innerPoints.reverse().join(' L ') + ' Z';
+        }
+
+        function renderFluidMasks() {
+            animTime += 0.02;
+            let currentTime = performance.now();
+            let elapsedInLoop = currentTime - loopStartTime;
+            
+            // --- 涟漪扩散逻辑 (保持不变) ---
+            if (!isWaiting) {
+                rippleT += 0.0312; 
+                if (rippleT > 1.2) { 
+                    rippleT = 1.2; 
+                    isWaiting = true;
+                    waitStartTime = currentTime; 
+                }
+            } else {
+                if (currentTime - waitStartTime >= 3000) {
+                    isWaiting = false;
+                    rippleT = 0;
+                    loopStartTime = currentTime; 
+                    elapsedInLoop = 0;
+                }
+            }
+
+            const rx = (width / 2) * rippleT; 
+            const ry = (width / 2) * rippleT; 
+            maskRipple.setAttribute('d', getOrganicPath(width/2, height/2, rx, ry, animTime, rippleT));
+
+            // ==========================================
+            // 【此处修改】调整涟漪透明度
+            // 原 peakAlpha 为 0.8，改为 60% 后为 0.48
+            // ==========================================
+            let ra = 0;
+            const peakAlpha = 0.48; 
+            
+            if (!isWaiting) {
+                if (elapsedInLoop < 500) {
+                    ra = (elapsedInLoop / 500) * peakAlpha; 
+                } else if (rippleT < 0.75) {
+                    ra = peakAlpha; 
+                } else {
+                    ra = Math.max(0, peakAlpha * (1 - (rippleT - 0.75) / 0.4));
+                }
+            } else {
+                ra = 0; 
+            }
+            maskRipple.setAttribute('opacity', ra);
+
+            // 边缘呼吸保持不变
+            feBlurEdge.setAttribute('stdDeviation', 25 + Math.sin(animTime * 1.5) * 10);
+            maskEdge.setAttribute('opacity', 0.5 + Math.cos(animTime * 2) * 0.2);
+
+
+            // --- 鼠标延迟弥散处理 ---
+            let targetTime = currentTime - DELAY_MS;
+            let delayedX = lastDelayedX;
+            let delayedY = lastDelayedY;
+
+            while (mouseHistory.length > 2 && mouseHistory[1].t < targetTime) {
+                mouseHistory.shift();
+            }
+
+            if (mouseHistory.length >= 2) {
+                let p0 = mouseHistory[0];
+                let p1 = mouseHistory[1];
+                
+                if (p0.t <= targetTime && p1.t >= targetTime) {
+                    let ratio = (targetTime - p0.t) / (p1.t - p0.t);
+                    delayedX = p0.x + (p1.x - p0.x) * ratio;
+                    delayedY = p0.y + (p1.y - p0.y) * ratio;
+                } else if (p1.t < targetTime) {
+                    delayedX = mouseHistory[mouseHistory.length - 1].x;
+                    delayedY = mouseHistory[mouseHistory.length - 1].y;
+                } else {
+                    delayedX = p0.x;
+                    delayedY = p0.y;
+                }
+            }
+
+            let dx = delayedX - lastDelayedX;
+            let dy = delayedY - lastDelayedY;
+            let instSpeed = Math.sqrt(dx*dx + dy*dy);
+            
+            lastDelayedX = delayedX;
+            lastDelayedY = delayedY;
+
+            smoothedSpeed += (instSpeed - smoothedSpeed) * 0.15;
+
+            let targetRadius = 0;
+            let targetOpacity = 0;
+            let targetBlur = 15;
+
+            if (smoothedSpeed > 0.3) {
+                targetRadius = Math.min(10 + smoothedSpeed * 3, 50); 
+                targetOpacity = Math.min(0.2 + smoothedSpeed * 0.03, 0.6); 
+                targetBlur = 15 + smoothedSpeed * 1.0; 
+            } 
+            else {
+                if (currentMouseOpacity > 0.05) {
+                    targetRadius = currentMouseRadius + 15; 
+                    targetBlur = currentMouseBlur + 10;   
+                    targetOpacity = 0; 
+                } else {
+                    targetRadius = 0;
+                    targetOpacity = 0;
+                    targetBlur = 15;
+                    currentMouseRadius = 0; 
+                }
+            }
+
+            let easingFactor = (currentMouseOpacity > 0.05 && smoothedSpeed <= 0.3) ? 0.3 : 0.15;
+            let blurEasingFactor = (currentMouseOpacity > 0.05 && smoothedSpeed <= 0.3) ? 0.2 : 0.1;
+
+            currentMouseRadius += (targetRadius - currentMouseRadius) * easingFactor;
+            currentMouseOpacity += (targetOpacity - currentMouseOpacity) * easingFactor;
+            currentMouseBlur += (targetBlur - currentMouseBlur) * blurEasingFactor;
+
+            maskMouse.setAttribute('cx', delayedX);
+            maskMouse.setAttribute('cy', delayedY);
+            maskMouse.setAttribute('r', Math.max(0, currentMouseRadius));
+            maskMouse.setAttribute('opacity', currentMouseOpacity);
+            feBlurMouse.setAttribute('stdDeviation', currentMouseBlur);
+
+            requestAnimationFrame(renderFluidMasks);
+        }
+        renderFluidMasks();
+    </script>
+</body>
+</html>

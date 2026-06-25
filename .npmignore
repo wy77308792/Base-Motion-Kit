@@ -1,0 +1,14 @@
+.git/
+.DS_Store
+node_modules/
+dist/
+*.log
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.webp
+preview*.png
+snippets/**/asset/
+

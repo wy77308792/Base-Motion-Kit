@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方块 A & B 缩放交互 - 精细缩放版</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --color-a: #ffffff;
+            --color-b: #F8F8F9;
+            --color-inner: #F0F4FF;
+            --stroke-color: #D0D3D6;
+            --icon-blue: #3377FF;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* 动画主舞台 */
+        .stage {
+            position: relative;
+            width: 89.5px;
+            height: 64px;
+            
+            /* 锚点：整体最下方中心点 (89.5/2, 64) */
+            transform-origin: 44.75px 64px;
+            
+            /* 默认状态：缩小 0.9 */
+            transform: scale(0.9);
+            
+            /* 交互过渡：150ms */
+            transition: transform 150ms ease-in-out;
+            cursor: pointer;
+        }
+
+        /* 悬停状态：微调放大至 0.96 (原为 1.0) */
+        .stage:hover {
+            transform: scale(0.96);
+        }
+
+        /* 图标调整：尺寸 36*36px */
+        .icon-plus {
+            position: absolute;
+            z-index: 4;
+            width: 36px;
+            height: 36px;
+            left: 28px; 
+            top: 42px;
+            pointer-events: none;
+            
+            /* 锚点：图标中心缩放 */
+            transform-origin: center;
+            
+            /* 默认图标缩放：1.0 */
+            transform: scale(1);
+            
+            /* 独立过渡动画：150ms */
+            transition: transform 150ms ease-in-out;
+        }
+
+        /* 图标放大比例：1.133 */
+        .stage:hover .icon-plus {
+            transform: scale(1.133);
+        }
+        
+        .icon-plus svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* 方块 A */
+        .block-a {
+            position: absolute;
+            z-index: 2;
+            width: 67px;
+            height: 64px;
+            left: 22.5px;
+            top: 0px;
+            background-color: var(--color-a);
+            border: 0.5px solid var(--stroke-color);
+            border-radius: 8px;
+            
+            /* 投影：不透明度 2% */
+            box-shadow: -1px 1px 4px 2.03px rgba(31, 35, 41, 0.02);
+            
+            transform: rotate(9deg);
+            box-sizing: border-box;
+            pointer-events: none;
+            display: flex;
+            padding: 8px;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        /* 内部方块 a, b, c */
+        .inner-box {
+            background-color: var(--color-inner);
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .box-a { width: 14px; height: 48px; }
+
+        .right-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .box-bc { width: 32px; height: 21px; }
+
+        /* 方块 B */
+        .block-b {
+            position: absolute;
+            z-index: 1;
+            width: 64px;
+            height: 57px;
+            left: 0px;
+            top: 3.5px;
+            background-color: var(--color-b);
+            border-radius: 8px;
+            background-image: url("data:image/svg+xml,%3csvg width='64' height='57' viewBox='0 0 64 57' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='0.25' y='0.25' width='63.5' height='56.5' rx='8' fill='none' stroke='%23D0D3D6' stroke-width='1' stroke-dasharray='4%2c4' pathLength='240' stroke-linecap='butt'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            transform: rotate(-8deg);
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+
+        .tip {
+            margin-top: 80px;
+            color: #888;
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stage">
+        <!-- SVG 图标：1.133x 放大 -->
+        <div class="icon-plus">
+            <svg viewBox="0 0 39 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9.09082 17.2727C9.09082 11.7499 13.568 7.27274 19.0908 7.27274C24.6137 7.27274 29.0908 11.7499 29.0908 17.2727C29.0908 22.7956 24.6137 27.2727 19.0908 27.2727C13.568 27.2727 9.09082 22.7956 9.09082 17.2727Z" fill="#3377FF"/>
+                <path d="M18.458 12.7727C18.458 12.423 18.7416 12.1394 19.0913 12.1394C19.4411 12.1394 19.7247 12.423 19.7247 12.7727V16.6394H23.5913C23.9411 16.6394 24.2247 16.923 24.2247 17.2727C24.2247 17.6225 23.9411 17.9061 23.5913 17.9061H19.7247V21.7727C19.7247 22.1225 19.4411 22.4061 19.0913 22.4061C18.7416 22.4061 18.458 22.1225 18.458 21.7727V17.9061H14.5913C14.2416 17.9061 13.958 17.6225 13.958 17.2727C13.958 16.923 14.2416 16.6394 14.5913 16.6394H18.458V12.7727Z" fill="white"/>
+            </svg>
+        </div>
+
+        <div class="block-b"></div>
+        
+        <div class="block-a">
+            <div class="inner-box box-a"></div>
+            <div class="right-group">
+                <div class="inner-box box-bc"></div>
+                <div class="inner-box box-bc"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tip">
+        <strong>动效细节再优化</strong><br>
+        默认：0.9x | 悬停：0.96x<br>
+        <span style="font-size: 11px; color: #aaa;">卡片整体放大幅度已收紧，强调中心元素的微动反馈</span>
+    </div>
+
+</body>
+</html>

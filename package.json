@@ -1,0 +1,21 @@
+{
+  "name": "base-motion-kit",
+  "version": "0.1.0",
+  "description": "Reusable UI animation snippets and an agent skill for selecting motion patterns.",
+  "private": false,
+  "type": "module",
+  "files": [
+    "README.md",
+    "inventory.md",
+    "animation-skill",
+    "references",
+    "snippets/**/*.html"
+  ],
+  "keywords": [
+    "motion",
+    "animation",
+    "ui",
+    "snippets"
+  ],
+  "license": "MIT"
+}
