@@ -5,8 +5,8 @@
 - Intent: ambient background, page focus, premium AI feel.
 - Use when: page needs soft breathing background or masked ripple around content.
 - Avoid when: dense table/list workbench, low-end mobile, battery-sensitive contexts.
-- Current implementation: CSS blob keyframes, SVG mask, JS mouse tracking.
-- Production notes: use LM/DM files as visual references, not direct product code. Extract a container-fill component that fills the parent with `position:absolute; inset:0; width:100%; height:100%`, recalculates canvas/SVG mask/mouse coordinates from the current container via `ResizeObserver`, removes fixed demo dimensions, exposes colors/speed/blur/opacity as params, and adds reduced-motion fallback. Preserve the original visual recipe; do not add new ring or ripple layers during adaptation.
+- Current implementation: CSS blob keyframes, SVG mask, center ripple, edge breathing, dot matrix.
+- Production notes: use LM/DM files as visual references, not direct product code. Extract a container-fill component that fills the parent with `position:absolute; inset:0; width:100%; height:100%`, recalculates canvas/SVG mask from the current container via `ResizeObserver`, removes fixed demo dimensions, exposes colors/speed/blur/opacity as params, and adds reduced-motion fallback. Preserve the original visual recipe; do not add mouse-follow, new ring, or new ripple layers during adaptation.
 - Source files: `snippets/ambient-ripple/light.html`, `snippets/ambient-ripple/dark.html`.
 
 ## `ai-loading-button`
@@ -31,6 +31,15 @@
 - Current implementation: 11s CSS timeline, 3 morphing cards, line sweep, icon pop.
 - Production notes: split timeline CSS from demo shell; expose theme tokens; add static end-state for reduced motion.
 - Source file: `snippets/layout-loading-loop/index.html`.
+
+## `typewriter-ai-input`
+
+- Intent: make an AI input feel guided with rotating typewriter placeholder examples.
+- Use when: an AI prompt input needs subtle example suggestions plus clickable suggestion fill-in.
+- Avoid when: the field is a normal static form input, repeated in table cells, or the placeholder must remain stable for accessibility.
+- Current implementation: textarea typewriter placeholder, focus-triggered suggestion dropdown, suggestion hover preview, suggestion click fill, auto height, send-button active state.
+- Production notes: copy only the input card and its local script; keep the consumer layout outside this snippet. Preserve focus/dropdown/hover/click behavior, replace demo prompts/icons with product content, and use a static placeholder under reduced motion.
+- Source file: `snippets/typewriter-ai-input/index.html`.
 
 ## `create-card-hover`
 

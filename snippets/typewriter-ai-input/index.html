@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typewriter AI Input</title>
+  <style>
+    :root {
+      --font-family: "SF Pro Text", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --text-title: #1f2329;
+      --text-placeholder: #8f959e;
+      --text-disabled: #bbbfc4;
+      --icon-n1: #646a73;
+      --icon-n3: #bbbfc4;
+      --line-border-card: #dee0e3;
+      --line-divider-default: #dee0e3;
+      --bg-body: #f6f8fc;
+      --bg-card: #fff;
+      --fill-hover: rgba(115, 132, 157, 0.08);
+      --fill-send: #1f2329;
+      --fill-send-disabled: #eff1f4;
+      --shadow-s1-down: 0 2px 8px rgba(31, 35, 41, 0.06), 0 0 1px rgba(31, 35, 41, 0.08);
+      --colorful-blue: #3370ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      background: var(--bg-body);
+      color: var(--text-title);
+      font-family: var(--font-family);
+    }
+
+    body {
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .new-table-landing {
+      display: flex;
+      width: min(720px, 100%);
+      max-width: 100%;
+      flex-direction: column;
+      color: var(--text-title);
+    }
+
+    .input-area {
+      display: contents;
+    }
+
+    .input-shell {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+
+    .input-spacer {
+      width: 100%;
+      height: 52px;
+      transition: height 200ms cubic-bezier(0.5, 0, 0.5, 1);
+    }
+
+    .panel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      overflow: hidden;
+      border: 0.5px solid var(--line-border-card);
+      border-radius: 12px;
+      background: var(--bg-card);
+      box-shadow: var(--shadow-s1-down);
+      transition: border-color 200ms cubic-bezier(0.5, 0, 0.5, 1),
+        box-shadow 200ms cubic-bezier(0.5, 0, 0.5, 1);
+    }
+
+    .input-section {
+      position: relative;
+      z-index: 2;
+      display: block;
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 12px 12px 16px;
+      background: transparent;
+    }
+
+    .preview {
+      position: absolute;
+      top: 14px;
+      right: 88px;
+      left: 16px;
+      z-index: 2;
+      height: 24px;
+      overflow: hidden;
+      color: var(--text-placeholder);
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0;
+      line-height: 22px;
+      opacity: 0;
+      pointer-events: none;
+      text-overflow: ellipsis;
+      transition: opacity 200ms cubic-bezier(0.5, 0, 0.5, 1);
+      white-space: nowrap;
+    }
+
+    .preview.show {
+      opacity: 1;
+    }
+
+    .ai-input {
+      display: block;
+      width: 100%;
+      height: 24px;
+      margin: 0;
+      padding: 3px 88px 3px 0;
+      overflow-y: hidden;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text-title);
+      font-family: var(--font-family);
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0;
+      line-height: 22px;
+      overflow-wrap: anywhere;
+      resize: none;
+      transition: height 200ms cubic-bezier(0.5, 0, 0.5, 1),
+        margin 200ms cubic-bezier(0.5, 0, 0.5, 1),
+        padding-right 200ms cubic-bezier(0.5, 0, 0.5, 1),
+        opacity 200ms cubic-bezier(0.5, 0, 0.5, 1);
+      white-space: pre-wrap;
+    }
+
+    .ai-input::placeholder {
+      color: var(--text-placeholder);
+      font-style: normal;
+      font-weight: 400;
+      opacity: 1;
+    }
+
+    .ai-input::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .ai-input::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      background-color: var(--line-border-card);
+    }
+
+    .ai-input.preview-mode {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .input-section.multiline .ai-input {
+      margin-top: 0;
+      margin-bottom: 36px;
+      padding-right: 0;
+    }
+
+    .measure {
+      position: absolute;
+      top: -9999px;
+      left: 0;
+      z-index: -1;
+      min-height: 24px;
+      color: var(--text-title);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 22px;
+      overflow-wrap: anywhere;
+      pointer-events: none;
+      visibility: hidden;
+      white-space: pre-wrap;
+    }
+
+    .action-group {
+      position: absolute;
+      right: 16px;
+      bottom: 12px;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      width: 28px;
+      height: 28px;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      appearance: none;
+      background: transparent;
+      color: var(--icon-n1);
+      cursor: pointer;
+      transition: background-color 100ms ease, color 100ms ease, opacity 100ms ease;
+    }
+
+    .icon-button:hover {
+      background: var(--fill-hover);
+    }
+
+    .send-button {
+      background: var(--fill-send-disabled);
+      color: var(--icon-n3);
+      cursor: default;
+    }
+
+    .send-button.active {
+      background: var(--fill-send);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .dropdown {
+      display: grid;
+      width: 100%;
+      margin-top: -1px;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 200ms cubic-bezier(0.5, 0, 0.5, 1);
+    }
+
+    .dropdown.show {
+      grid-template-rows: 1fr;
+    }
+
+    .dropdown-content {
+      min-height: 0;
+      overflow: hidden;
+      border-top: 0.5px solid transparent;
+      transition: border-color 200ms cubic-bezier(0.5, 0, 0.5, 1);
+    }
+
+    .dropdown.show .dropdown-content {
+      border-top-color: var(--line-divider-default);
+    }
+
+    .dropdown-inner {
+      padding: 0 0 6px;
+      opacity: 0;
+      transform: translateY(-12px);
+      transition: opacity 200ms cubic-bezier(0.5, 0, 0.5, 1),
+        transform 200ms cubic-bezier(0.5, 0, 0.5, 1);
+    }
+
+    .dropdown.show .dropdown-inner {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .dropdown-title {
+      padding: 12px 16px 4px;
+      color: var(--text-placeholder);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 20px;
+    }
+
+    .dropdown-list {
+      display: flex;
+      max-height: 260px;
+      flex-direction: column;
+      gap: 4px;
+      overflow: hidden;
+      padding: 0 8px 2px;
+    }
+
+    .dropdown-item {
+      display: flex;
+      width: 100%;
+      height: 32px;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px 5px 6px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-title);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0;
+      line-height: 22px;
+      transition: background-color 100ms ease;
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item.active {
+      background: var(--fill-hover);
+    }
+
+    .dropdown-item-icon {
+      display: inline-flex;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      color: var(--colorful-blue);
+    }
+
+    .dropdown-item-text {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .entrance {
+      opacity: 0;
+      animation: float-up-in 600ms cubic-bezier(0.5, 0, 0.5, 1) forwards;
+    }
+
+    .entrance.input-shell {
+      animation-delay: 1000ms;
+    }
+
+    @keyframes float-up-in {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="new-table-landing">
+    <div class="input-area" id="input-area">
+      <div class="input-shell entrance">
+        <div id="input-spacer" class="input-spacer"></div>
+        <div class="panel" id="panel">
+          <div class="input-section" id="input-section">
+            <div id="preview" class="preview"></div>
+            <textarea class="ai-input" id="ai-input" rows="1" autocomplete="off" spellcheck="false"></textarea>
+            <div id="measure" class="measure" aria-hidden="true"></div>
+            <div class="action-group">
+              <button class="icon-button" type="button" aria-label="Voice input">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 3.75a3.25 3.25 0 0 0-3.25 3.25v5a3.25 3.25 0 0 0 6.5 0v-5A3.25 3.25 0 0 0 12 3.75Z" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M5.75 11.25v.5a6.25 6.25 0 0 0 12.5 0v-.5M12 18v2.5M8.5 20.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <button id="send-btn" class="icon-button send-button" type="button" aria-label="Send">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="dropdown" id="dropdown">
+            <div class="dropdown-content">
+              <div class="dropdown-inner">
+                <div class="dropdown-title">AI can help you</div>
+                <div class="dropdown-list" id="dropdown-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const inputArea = document.getElementById("input-area");
+      const inputEl = document.getElementById("ai-input");
+      const measureEl = document.getElementById("measure");
+      const previewEl = document.getElementById("preview");
+      const inputSection = document.getElementById("input-section");
+      const inputSpacer = document.getElementById("input-spacer");
+      const dropdown = document.getElementById("dropdown");
+      const dropdownList = document.getElementById("dropdown-list");
+      const sendBtn = document.getElementById("send-btn");
+
+      const suggestions = [
+        {
+          label: "Create enterprise warehouse management table",
+          value: "Create enterprise warehouse management table with item name, inventory quantity, storage location, inbound and outbound records, and status remarks, arrange all business fields in standard table format for daily warehouse operation management."
+        },
+        {
+          label: "Build product production process control table",
+          value: "Build product production process control table including production order, process node, responsible person, progress status and completion time, organize all production business data into a clear and standardized table layout."
+        },
+        {
+          label: "Make logistics transportation scheduling record table",
+          value: "Make logistics transportation scheduling record table with delivery order number, carrier, route, departure time, arrival status and remarks, sort all transportation business information into a structured business table."
+        }
+      ];
+
+      const config = {
+        baseInputHeight: 24,
+        maxInputHeight: 72,
+        typewriterDelay: 1300,
+        typeSpeed: 30,
+        deleteSpeed: 10,
+        blinkInterval: 500,
+        blinkTimes: 8,
+        nextPhraseDelay: 500,
+        previewClearDelay: 200,
+        placeholder: "Ask AI to build a table",
+        animated: !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      };
+
+      let focused = false;
+      let typingActive = config.animated;
+      let phraseIndex = 0;
+      let charIndex = 0;
+      let deleting = false;
+      let blinkCount = 0;
+      let cursorVisible = true;
+      let typewriterRun = 0;
+      let typingTimer = 0;
+      let previewClearTimer = 0;
+      let previewValue = "";
+
+      function renderSuggestions() {
+        dropdownList.innerHTML = suggestions.map((item, index) => `
+          <div class="dropdown-item" data-index="${index}" role="button" tabindex="-1">
+            <span class="dropdown-item-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M4 10h16M9 5v14M15 5v14" stroke="currentColor" stroke-width="1.6"/>
+              </svg>
+            </span>
+            <span class="dropdown-item-text">${item.label}</span>
+          </div>
+        `).join("");
+      }
+
+      function hasValue() {
+        return inputEl.value.trim().length > 0;
+      }
+
+      function clearTypingTimer() {
+        window.clearTimeout(typingTimer);
+      }
+
+      function clearPreviewTimer() {
+        window.clearTimeout(previewClearTimer);
+      }
+
+      function setPreview(nextValue) {
+        previewValue = nextValue;
+        previewEl.textContent = nextValue;
+        previewEl.classList.toggle("show", Boolean(nextValue));
+        inputEl.classList.toggle("preview-mode", Boolean(nextValue));
+        updateDropdownItems();
+        syncHeight();
+        updateSendState();
+      }
+
+      function clearPreview() {
+        clearPreviewTimer();
+        setPreview("");
+      }
+
+      function schedulePreviewClear() {
+        clearPreviewTimer();
+        previewClearTimer = window.setTimeout(() => setPreview(""), config.previewClearDelay);
+      }
+
+      function updateSendState() {
+        sendBtn.classList.toggle("active", hasValue());
+      }
+
+      function updateDropdown() {
+        const canShow = focused && !hasValue();
+        dropdown.classList.toggle("show", canShow && (previewValue || suggestions.length > 0));
+      }
+
+      function updateDropdownItems() {
+        [...dropdownList.querySelectorAll(".dropdown-item")].forEach((item) => {
+          const suggestion = suggestions[Number(item.dataset.index)];
+          item.classList.toggle("active", previewValue === suggestion.value);
+        });
+      }
+
+      function syncHeight() {
+        if (previewValue) {
+          inputSection.classList.remove("multiline");
+          inputEl.style.height = `${config.baseInputHeight}px`;
+          inputEl.style.overflowY = "hidden";
+          inputSpacer.style.height = "52px";
+          updateDropdown();
+          return;
+        }
+
+        measureEl.style.width = `${inputEl.offsetWidth}px`;
+        measureEl.style.paddingRight = "88px";
+        measureEl.textContent = inputEl.value + (inputEl.value.endsWith("\n") ? " " : "") || " ";
+
+        if (measureEl.scrollHeight <= 30) {
+          inputSection.classList.remove("multiline");
+          inputEl.style.height = `${config.baseInputHeight}px`;
+          inputEl.style.overflowY = "hidden";
+          inputSpacer.style.height = "52px";
+          updateDropdown();
+          return;
+        }
+
+        inputSection.classList.add("multiline");
+        measureEl.style.paddingRight = "0px";
+        const nextHeight = Math.min(measureEl.scrollHeight, config.maxInputHeight);
+        inputEl.style.height = `${nextHeight}px`;
+        inputEl.style.overflowY = nextHeight >= config.maxInputHeight ? "auto" : "hidden";
+        inputSpacer.style.height = `${nextHeight + 60}px`;
+        updateDropdown();
+      }
+
+      function resetTypewriterCursor() {
+        phraseIndex = 0;
+        charIndex = 0;
+        deleting = false;
+        blinkCount = 0;
+        cursorVisible = true;
+        inputEl.setAttribute("placeholder", "");
+      }
+
+      function typeWriter(runId) {
+        if (runId !== typewriterRun || !typingActive || focused || hasValue()) return;
+
+        const currentPhrase = suggestions[phraseIndex]?.label;
+        if (!currentPhrase) return;
+
+        if (!deleting && charIndex >= currentPhrase.length) {
+          if (blinkCount < config.blinkTimes) {
+            cursorVisible = !cursorVisible;
+            blinkCount += 1;
+            inputEl.setAttribute("placeholder", currentPhrase + (cursorVisible ? "_" : ""));
+            typingTimer = window.setTimeout(() => typeWriter(runId), config.blinkInterval);
+            return;
+          }
+
+          blinkCount = 0;
+          cursorVisible = true;
+          deleting = true;
+          typingTimer = window.setTimeout(() => typeWriter(runId), config.deleteSpeed);
+          return;
+        }
+
+        if (deleting && charIndex === 0) {
+          deleting = false;
+          blinkCount = 0;
+          cursorVisible = true;
+          phraseIndex = (phraseIndex + 1) % suggestions.length;
+          typingTimer = window.setTimeout(() => typeWriter(runId), config.nextPhraseDelay);
+          return;
+        }
+
+        charIndex += deleting ? -1 : 1;
+        inputEl.setAttribute("placeholder", `${currentPhrase.substring(0, charIndex)}_`);
+        typingTimer = window.setTimeout(() => typeWriter(runId), deleting ? config.deleteSpeed : config.typeSpeed);
+      }
+
+      function startTypewriter(delay = config.typewriterDelay) {
+        clearTypingTimer();
+        if (!typingActive || focused || hasValue() || !suggestions.length) return;
+
+        const runId = typewriterRun + 1;
+        typewriterRun = runId;
+        typingTimer = window.setTimeout(() => typeWriter(runId), delay);
+      }
+
+      function stopTypewriter() {
+        typewriterRun += 1;
+        clearTypingTimer();
+        typingActive = false;
+        resetTypewriterCursor();
+        inputEl.setAttribute("placeholder", config.placeholder);
+      }
+
+      function restartTypewriterIfEmpty() {
+        if (hasValue()) return;
+        resetTypewriterCursor();
+        typingActive = config.animated;
+        if (typingActive) {
+          startTypewriter(0);
+        } else {
+          inputEl.setAttribute("placeholder", config.placeholder);
+        }
+      }
+
+      function submitInput() {
+        const submitValue = inputEl.value.trim();
+        if (!submitValue) return;
+        sendBtn.animate(
+          [{ transform: "scale(1)" }, { transform: "scale(0.92)" }, { transform: "scale(1)" }],
+          { duration: 180, easing: "cubic-bezier(0.5, 0, 0.5, 1)" }
+        );
+      }
+
+      renderSuggestions();
+      inputEl.setAttribute("placeholder", config.placeholder);
+      startTypewriter();
+
+      inputEl.addEventListener("focus", () => {
+        focused = true;
+        stopTypewriter();
+        updateDropdown();
+      });
+
+      inputEl.addEventListener("input", () => {
+        clearPreview();
+        syncHeight();
+        updateSendState();
+      });
+
+      inputEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          submitInput();
+        }
+      });
+
+      inputArea.addEventListener("focusout", (event) => {
+        if (event.relatedTarget && inputArea.contains(event.relatedTarget)) return;
+        focused = false;
+        clearPreview();
+        updateDropdown();
+        restartTypewriterIfEmpty();
+      });
+
+      document.addEventListener("mousedown", (event) => {
+        if (inputArea.contains(event.target)) return;
+        if (!focused) return;
+        focused = false;
+        clearPreview();
+        updateDropdown();
+        restartTypewriterIfEmpty();
+      });
+
+      dropdownList.addEventListener("mouseover", (event) => {
+        const item = event.target.closest(".dropdown-item");
+        if (!item) return;
+        clearPreviewTimer();
+        setPreview(suggestions[Number(item.dataset.index)].value);
+        updateDropdown();
+      });
+
+      dropdownList.addEventListener("mouseout", (event) => {
+        const item = event.target.closest(".dropdown-item");
+        if (!item) return;
+        schedulePreviewClear();
+      });
+
+      dropdownList.addEventListener("mousedown", (event) => {
+        const item = event.target.closest(".dropdown-item");
+        if (!item) return;
+        event.preventDefault();
+      });
+
+      dropdownList.addEventListener("click", (event) => {
+        const item = event.target.closest(".dropdown-item");
+        if (!item) return;
+        inputEl.value = suggestions[Number(item.dataset.index)].value;
+        clearPreview();
+        syncHeight();
+        updateSendState();
+        inputEl.focus();
+        inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+      });
+
+      sendBtn.addEventListener("click", submitInput);
+      window.addEventListener("resize", syncHeight);
+    });
+  </script>
+</body>
+</html>

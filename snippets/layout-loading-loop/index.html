@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>精密方块循环动画 - 最终版</title>
+    <script>
+        const initialTheme = new URLSearchParams(window.location.search).get('theme');
+        if (initialTheme === 'dark' || initialTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', initialTheme);
+        }
+    </script>
     <style>
         @property --bottom-space {
             syntax: '<length>';
@@ -120,6 +126,7 @@
             right: -2px;
             width: 5px;
             height: 5px;
+            color: var(--icon-color);
             opacity: 0;
             transform: scale(0.2); 
             transform-origin: center center;
@@ -345,21 +352,6 @@
         #boxB { animation: anim-B var(--total-duration) var(--transition-ease) infinite; }
         #boxC { animation: anim-C var(--total-duration) var(--transition-ease) infinite; }
 
-        /* 主题切换按钮演示 - 仅供调试预览 */
-        .theme-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: 1px solid var(--box-stroke);
-            background: var(--box-fill);
-            color: var(--icon-color);
-            cursor: pointer;
-            font-size: 12px;
-            z-index: 100;
-        }
-
     </style>
 </head>
 <body>
@@ -411,17 +403,6 @@
             </div>
         </div>
     </div>
-
-    <!-- 演示用切换按钮 -->
-    <button class="theme-toggle" onclick="toggleTheme()">切换主题</button>
-
-    <script>
-        function toggleTheme() {
-            const html = document.documentElement;
-            const current = html.getAttribute('data-theme');
-            html.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-        }
-    </script>
 
 </body>
 </html>

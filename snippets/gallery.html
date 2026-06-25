@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base Motion Kit Gallery</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #f5f7fb;
+      color: #162033;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      padding: clamp(16px, 4vw, 32px);
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+      max-width: 1180px;
+      margin: 0 auto 24px;
+    }
+
+    .intro {
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 0;
+      color: #5f6f89;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: 20px;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .card {
+      overflow: hidden;
+      border: 1px solid rgba(75, 96, 130, 0.16);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 16px 40px rgba(20, 34, 56, 0.08);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 78px;
+      padding: 16px;
+      border-bottom: 1px solid rgba(75, 96, 130, 0.12);
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: #edf3ff;
+      color: #2755b7;
+      padding: 4px 8px;
+      font-size: 12px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .card-tools {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mini-theme {
+      display: flex;
+      gap: 2px;
+      padding: 2px;
+      border: 1px solid rgba(75, 96, 130, 0.14);
+      border-radius: 7px;
+      background: rgba(245, 247, 251, 0.8);
+    }
+
+    .mini-theme-button {
+      min-width: 44px;
+      height: 22px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: #66758d;
+      cursor: pointer;
+      font: inherit;
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .mini-theme-button[aria-pressed="true"] {
+      background: #2755b7;
+      color: #fff;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 260px;
+      border: 0;
+      background: transparent;
+    }
+
+    .wide iframe {
+      height: 320px;
+    }
+
+    .input-preview iframe {
+      height: 340px;
+    }
+
+    .note {
+      padding: 10px 16px 14px;
+      border-top: 1px solid rgba(75, 96, 130, 0.1);
+      color: #6a7890;
+      font-size: 12px;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="intro">
+      <h1>Base Motion Kit Gallery</h1>
+      <p>用于需求澄清时快速预览现有动效。新增 snippet 时必须同步更新这个页面。</p>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card wide">
+      <div class="card-header">
+        <div>
+          <h2>1. 背景呼吸/涟漪氛围</h2>
+          <p>适合页面背景或局部背景容器。</p>
+        </div>
+        <div class="card-tools">
+          <div class="mini-theme" aria-label="背景呼吸/涟漪氛围主题">
+            <button class="mini-theme-button" type="button" data-frame-title="背景呼吸/涟漪氛围" data-theme-option="light" aria-pressed="true">Light</button>
+            <button class="mini-theme-button" type="button" data-frame-title="背景呼吸/涟漪氛围" data-theme-option="dark" aria-pressed="false">Dark</button>
+          </div>
+          <span class="tag">ambient-ripple</span>
+        </div>
+      </div>
+      <iframe class="preview-frame" title="背景呼吸/涟漪氛围" src="./ambient-ripple/light.html" data-light-src="./ambient-ripple/light.html" data-dark-src="./ambient-ripple/dark.html"></iframe>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2>2. AI loading button/按钮炫光</h2>
+          <p>适合生成、提交、等待状态按钮。</p>
+        </div>
+        <div class="card-tools">
+          <div class="mini-theme" aria-label="AI loading button/按钮炫光主题">
+            <button class="mini-theme-button" type="button" data-frame-title="AI loading button/按钮炫光" data-theme-option="light" aria-pressed="true">Light</button>
+            <button class="mini-theme-button" type="button" data-frame-title="AI loading button/按钮炫光" data-theme-option="dark" aria-pressed="false">Dark</button>
+          </div>
+          <span class="tag">ai-loading-button</span>
+        </div>
+      </div>
+      <iframe class="preview-frame" title="AI loading button/按钮炫光" src="./ai-loading-button/light.html" data-light-src="./ai-loading-button/light.html" data-dark-src="./ai-loading-button/dark.html"></iframe>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2>3. 页面加载或页面生成动效</h2>
+          <p>适合页面、模块或数据块加载/生成中。</p>
+        </div>
+        <div class="card-tools">
+          <div class="mini-theme" aria-label="页面加载或页面生成动效主题">
+            <button class="mini-theme-button" type="button" data-frame-title="页面加载或页面生成动效" data-theme-option="light" aria-pressed="true">Light</button>
+            <button class="mini-theme-button" type="button" data-frame-title="页面加载或页面生成动效" data-theme-option="dark" aria-pressed="false">Dark</button>
+          </div>
+          <span class="tag">layout-loading-loop</span>
+        </div>
+      </div>
+      <iframe class="preview-frame" title="页面加载或页面生成动效" src="./layout-loading-loop/index.html?theme=light" data-light-src="./layout-loading-loop/index.html?theme=light" data-dark-src="./layout-loading-loop/index.html?theme=dark"></iframe>
+    </section>
+
+    <section class="card input-preview">
+      <div class="card-header">
+        <div>
+          <h2>4. 输入框打字机效果</h2>
+          <p>适合 AI 输入框、提示词输入和 placeholder 示例轮播。</p>
+        </div>
+        <span class="tag">typewriter-ai-input</span>
+      </div>
+      <iframe class="preview-frame" title="输入框打字机效果" src="./typewriter-ai-input/index.html"></iframe>
+      <div class="note">点击输入框查看候选展开，hover 候选可预览，点击候选会填入输入框。</div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2>5. 上传/导入卡片按钮 hover 效果</h2>
+          <p>适合上传文件、导入数据入口。</p>
+        </div>
+        <span class="tag">upload-card-hover</span>
+      </div>
+      <iframe class="preview-frame" title="上传/导入卡片按钮 hover 效果" src="./upload-card-hover/index.html"></iframe>
+      <div class="note">把鼠标移入预览区域查看 hover 效果。当前 snippet 为单主题预览。</div>
+    </section>
+  </main>
+
+  <script>
+    const miniThemeButtons = [...document.querySelectorAll(".mini-theme-button")];
+    const previewFrames = [...document.querySelectorAll(".preview-frame")];
+
+    function getFrameByTitle(title) {
+      return previewFrames.find((frame) => frame.title === title);
+    }
+
+    function syncEmbeddedTheme(frame, theme) {
+      if (frame.dataset.lightSrc && frame.dataset.darkSrc) {
+        const nextSrc = theme === "dark" ? frame.dataset.darkSrc : frame.dataset.lightSrc;
+        frame.dataset.currentTheme = theme;
+        if (frame.getAttribute("src") !== nextSrc) frame.setAttribute("src", nextSrc);
+        return;
+      }
+
+      return;
+    }
+
+    miniThemeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const frame = getFrameByTitle(button.dataset.frameTitle);
+        if (!frame) return;
+        const theme = button.dataset.themeOption;
+        syncEmbeddedTheme(frame, theme);
+        miniThemeButtons
+          .filter((item) => item.dataset.frameTitle === button.dataset.frameTitle)
+          .forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+      });
+    });
+
+    previewFrames.forEach((frame) => {
+      frame.addEventListener("load", () => {
+        syncEmbeddedTheme(frame, frame.dataset.currentTheme || "light");
+      });
+    });
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atlas Vision - Refined Delayed Mouse Trail</title>
+    <title>Atlas Vision - Ambient Ripple</title>
     <style>
         :root {
             --c1: #68D3FF;
@@ -137,16 +137,10 @@
                         <feGaussianBlur id="fe-blur-ripple" stdDeviation="35" /> 
                     </filter>
                     
-                    <filter id="blur-mouse" x="-100%" y="-100%" width="300%" height="300%">
-                        <feGaussianBlur id="fe-blur-mouse" stdDeviation="15" /> 
-                    </filter>
-
                     <mask id="vision-mask" maskUnits="userSpaceOnUse" x="0" y="0">
                         <rect width="100%" height="100%" fill="black" />
                         <rect id="mask-edge" x="0" y="0" fill="none" stroke="white" stroke-width="30" filter="url(#blur-edge)" opacity="0.6" />
                         <path id="mask-ripple" d="" fill="white" filter="url(#blur-ripple)" opacity="0" />
-                        
-                        <circle id="mask-mouse" cx="-500" cy="-500" r="0" fill="white" filter="url(#blur-mouse)" opacity="0" />
                     </mask>
                 </defs>
             </svg>
@@ -258,8 +252,6 @@
         const maskEdge = document.getElementById('mask-edge');
         const feBlurEdge = document.getElementById('fe-blur-edge');
         const maskRipple = document.getElementById('mask-ripple');
-        const maskMouse = document.getElementById('mask-mouse');
-        const feBlurMouse = document.getElementById('fe-blur-mouse');
 
         let rippleT = 0; 
         let animTime = 0;
@@ -268,28 +260,6 @@
         let loopStartTime = performance.now(); 
         let isWaiting = false;
         let waitStartTime = 0;
-
-        // --- 鼠标延迟弥散引擎变量 ---
-        let mouseHistory = []; // 时间戳坐标队列
-        const DELAY_MS = 100;  // 100 毫秒的物理延迟
-        
-        let lastDelayedX = -500;
-        let lastDelayedY = -500;
-        let smoothedSpeed = 0; // 平滑后的运动速度
-        
-        // 呈现渲染用的过渡值
-        let currentMouseRadius = 0;
-        let currentMouseOpacity = 0;
-        let currentMouseBlur = 15;
-
-        // 收集实时鼠标坐标进入历史队列
-        container.addEventListener('mousemove', (e) => {
-            const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            mouseHistory.push({ x, y, t: performance.now() });
-        });
 
         // 涟漪路径生成 (维持不变)
         function getOrganicPath(cx, cy, baseRx, baseRy, time, percentage) {
@@ -362,87 +332,6 @@
             // 边缘呼吸保持不变
             feBlurEdge.setAttribute('stdDeviation', 25 + Math.sin(animTime * 1.5) * 10);
             maskEdge.setAttribute('opacity', 0.5 + Math.cos(animTime * 2) * 0.2);
-
-
-            // ==========================================
-            // 【核心修改】鼠标延迟弥散处理
-            // ==========================================
-            let targetTime = currentTime - DELAY_MS;
-            let delayedX = lastDelayedX;
-            let delayedY = lastDelayedY;
-
-            while (mouseHistory.length > 2 && mouseHistory[1].t < targetTime) {
-                mouseHistory.shift();
-            }
-
-            if (mouseHistory.length >= 2) {
-                let p0 = mouseHistory[0];
-                let p1 = mouseHistory[1];
-                
-                if (p0.t <= targetTime && p1.t >= targetTime) {
-                    let ratio = (targetTime - p0.t) / (p1.t - p0.t);
-                    delayedX = p0.x + (p1.x - p0.x) * ratio;
-                    delayedY = p0.y + (p1.y - p0.y) * ratio;
-                } else if (p1.t < targetTime) {
-                    delayedX = mouseHistory[mouseHistory.length - 1].x;
-                    delayedY = mouseHistory[mouseHistory.length - 1].y;
-                } else {
-                    delayedX = p0.x;
-                    delayedY = p0.y;
-                }
-            }
-
-            let dx = delayedX - lastDelayedX;
-            let dy = delayedY - lastDelayedY;
-            let instSpeed = Math.sqrt(dx*dx + dy*dy);
-            
-            lastDelayedX = delayedX;
-            lastDelayedY = delayedY;
-
-            smoothedSpeed += (instSpeed - smoothedSpeed) * 0.15;
-
-            // --- 动态映射修改点 ---
-            let targetRadius = 0;
-            let targetOpacity = 0;
-            let targetBlur = 15;
-
-            // 1. 小尺寸出现（从 0 小变大）
-            if (smoothedSpeed > 0.3) {
-                targetRadius = Math.min(10 + smoothedSpeed * 3, 50); // 最大尺寸从 160 降至 50，更小巧
-                targetOpacity = Math.min(0.2 + smoothedSpeed * 0.03, 0.6); // 最高不透明度 0.6
-                targetBlur = 15 + smoothedSpeed * 1.0; 
-            } 
-            // 2. 停止前变大扩散消失
-            else {
-                // 如果当前还有一定透明度，说明正在淡出过程中
-                if (currentMouseOpacity > 0.05) {
-                    // 强制半径变大扩散 (扩散速度要快)
-                    targetRadius = currentMouseRadius + 15; // 每次动画帧增加 15px
-                    targetBlur = currentMouseBlur + 10;   // 每次动画帧增加模糊度
-                    targetOpacity = 0; // 目标透明度归零，以触发过渡动画消融
-                } else {
-                    // 完全淡出后，重置回原点，准备下次出现
-                    targetRadius = 0;
-                    targetOpacity = 0;
-                    targetBlur = 15;
-                    currentMouseRadius = 0; // 强行拉回0，以便下次运动时“从小变大”
-                }
-            }
-
-            // 3. 执行过渡缓动 (淡出过程使用更快的过渡速度)
-            let easingFactor = (currentMouseOpacity > 0.05 && smoothedSpeed <= 0.3) ? 0.3 : 0.15;
-            let blurEasingFactor = (currentMouseOpacity > 0.05 && smoothedSpeed <= 0.3) ? 0.2 : 0.1;
-
-            currentMouseRadius += (targetRadius - currentMouseRadius) * easingFactor;
-            currentMouseOpacity += (targetOpacity - currentMouseOpacity) * easingFactor;
-            currentMouseBlur += (targetBlur - currentMouseBlur) * blurEasingFactor;
-
-            maskMouse.setAttribute('cx', delayedX);
-            maskMouse.setAttribute('cy', delayedY);
-            // 确保半径不会小于0
-            maskMouse.setAttribute('r', Math.max(0, currentMouseRadius));
-            maskMouse.setAttribute('opacity', currentMouseOpacity);
-            feBlurMouse.setAttribute('stdDeviation', currentMouseBlur);
 
             requestAnimationFrame(renderFluidMasks);
         }

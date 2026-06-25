@@ -9,6 +9,7 @@ Reusable UI animation snippets and an installable Codex skill for choosing the r
 | `ambient-ripple` | breathing background / ambient ripple | `snippets/ambient-ripple/` |
 | `ai-loading-button` | AI loading / glowing CTA button | `snippets/ai-loading-button/` |
 | `layout-loading-loop` | AI thinking / layout loading illustration | `snippets/layout-loading-loop/` |
+| `typewriter-ai-input` | AI input placeholder typewriter and suggestion dropdown | `snippets/typewriter-ai-input/` |
 | `create-card-hover` | create-entry hover micro-interaction | `snippets/create-card-hover/` |
 | `create-card-scale-hover` | compact create-entry hover micro-interaction | `snippets/create-card-scale-hover/` |
 | `upload-card-hover` | upload/import hover micro-interaction | `snippets/upload-card-hover/` |
