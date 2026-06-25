@@ -31,6 +31,17 @@ Restart Codex after installing. Then invoke it explicitly:
 
 The skill entrypoint is `SKILL.md`; it routes requests through `references/decision-matrix.md` and `references/pattern-catalog.md`.
 
+## Update Check
+
+The skill includes a daily update checker. Agents should run it before the first substantive use each day:
+
+```bash
+cd ~/.codex/skills/base-motion-kit
+bash scripts/check-update.sh
+```
+
+If a newer remote version exists, the script prints the exact `git pull --ff-only` command to run. It does not auto-update the skill unless the user asks.
+
 ## Use Snippets Directly
 
 Clone the repository and copy only the selected snippet:

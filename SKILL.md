@@ -7,6 +7,21 @@ description: Use when the user asks to add, choose, reuse, or adapt UI animation
 
 This skill routes animation requests to the local snippet library under `snippets/`.
 
+## Update Check Rule
+
+Before the first substantive use each day, run the update checker from this skill directory:
+
+```bash
+bash scripts/check-update.sh
+```
+
+Behavior:
+
+- If it prints `BASE_MOTION_KIT_UPDATE_OK` or `BASE_MOTION_KIT_UPDATE_SKIP`, continue normally.
+- If it prints `BASE_MOTION_KIT_UPDATE_AVAILABLE`, tell the user there is a newer Base Motion Kit version and show the printed `git pull --ff-only` command. Do not auto-update unless the user asks.
+- If it prints `BASE_MOTION_KIT_UPDATE_WARN` or `BASE_MOTION_KIT_UPDATE_DIVERGED`, continue with the local version and briefly report the warning.
+- The check is cached per local checkout per day under `~/.cache/base-motion-kit/`.
+
 ## Workflow
 
 1. Identify intent: `ambient`, `loading`, `affordance`, `feedback`, `layout-transition`.

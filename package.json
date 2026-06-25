@@ -10,6 +10,7 @@
     "agents",
     "inventory.md",
     "references",
+    "scripts",
     "snippets/**/*.html"
   ],
   "keywords": [
