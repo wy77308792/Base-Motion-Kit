@@ -11,6 +11,12 @@
             --c3: #ae00ff;
         }
 
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
         body {
             background-color: transparent; 
             margin: 0;
@@ -21,22 +27,26 @@
 
         .stage {
             position: relative;
-            width: 1728px;
-            height: 1117px;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            isolation: isolate;
             z-index: 0;
         }
 
         .vision-container {
             position: absolute;
-            left: 240px;
-            top: 64px;
-            width: 1132px;
-            height: 1053px;
+            inset: 0;
+            width: 100%;
+            height: 100%;
             border-radius: 4px;
             background-color: transparent; 
             overflow: hidden;
             isolation: isolate;
             z-index: 1;
+            --ambient-width: 1132px;
+            --ambient-height: 1053px;
+            --ambient-max: 1132px;
         }
 
         #masked-layer {
@@ -83,10 +93,10 @@
             100% { background-color: var(--c2); transform: translate(0, 0) scale(0.6); opacity: 0.4; }
         }
 
-        .blob-1 { width: 700px; height: 700px; top: -200px; left: -200px; animation: flow-cycle-A 3.5s infinite ease-in-out; } 
-        .blob-2 { width: 800px; height: 800px; top: -200px; right: -200px; animation: flow-cycle-B 4.5s infinite ease-in-out; animation-delay: -2.5s; } 
-        .blob-3 { width: 700px; height: 700px; bottom: -200px; left: -150px; animation: flow-cycle-C 3s infinite ease-in-out; animation-delay: -1s; } 
-        .blob-4 { width: 750px; height: 750px; bottom: -200px; right: -200px; animation: flow-cycle-A 4s infinite reverse ease-in-out; animation-delay: -5s; } 
+        .blob-1 { width: calc(var(--ambient-max) * 0.62); height: calc(var(--ambient-max) * 0.62); top: calc(var(--ambient-height) * -0.19); left: calc(var(--ambient-width) * -0.18); animation: flow-cycle-A 3.5s infinite ease-in-out; } 
+        .blob-2 { width: calc(var(--ambient-max) * 0.71); height: calc(var(--ambient-max) * 0.71); top: calc(var(--ambient-height) * -0.19); right: calc(var(--ambient-width) * -0.18); animation: flow-cycle-B 4.5s infinite ease-in-out; animation-delay: -2.5s; } 
+        .blob-3 { width: calc(var(--ambient-max) * 0.62); height: calc(var(--ambient-max) * 0.62); bottom: calc(var(--ambient-height) * -0.19); left: calc(var(--ambient-width) * -0.13); animation: flow-cycle-C 3s infinite ease-in-out; animation-delay: -1s; } 
+        .blob-4 { width: calc(var(--ambient-max) * 0.66); height: calc(var(--ambient-max) * 0.66); bottom: calc(var(--ambient-height) * -0.19); right: calc(var(--ambient-width) * -0.18); animation: flow-cycle-A 4s infinite reverse ease-in-out; animation-delay: -5s; } 
 
         #matrix-canvas {
             position: absolute;
@@ -97,6 +107,22 @@
         }
 
         @keyframes layer-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            #masked-layer {
+                opacity: 0.8;
+                animation: none;
+            }
+
+            .color-blob {
+                animation: none;
+            }
+
+            .blob-1 { background-color: var(--c1); opacity: 0.8; }
+            .blob-2 { background-color: var(--c2); opacity: 0.5; }
+            .blob-3 { background-color: var(--c3); opacity: 0.5; }
+            .blob-4 { background-color: var(--c1); opacity: 0.35; }
+        }
     </style>
 </head>
 <body>
@@ -144,6 +170,7 @@
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         const container = document.getElementById('container');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const CONFIG = { spacing: 10, baseSize: 2, baseRadius: 0.6, dotColor: '255, 255, 255', baseAlpha: 0.7, activeSize: 3, activeRadius: 1, activeAlpha: 1.0, glowBlur: 6, activeRate: 0.10, invisibleRate: 0.25, changeSpeed: 0.2, fadeStep: 0.3 };
         let baseSprite, activeSprite, activeSpriteOffset, width, height, cols, rows, updatesPerFrame, targetState, currentState;
 
@@ -159,20 +186,33 @@
         }
 
         function resize() {
-            width = container.clientWidth; height = container.clientHeight;
+            const rect = container.getBoundingClientRect();
+            const dpr = Math.max(1, window.devicePixelRatio || 1);
+            width = Math.max(1, Math.round(rect.width));
+            height = Math.max(1, Math.round(rect.height));
+            container.style.setProperty('--ambient-width', `${width}px`);
+            container.style.setProperty('--ambient-height', `${height}px`);
+            container.style.setProperty('--ambient-max', `${Math.max(width, height)}px`);
             const visionMask = document.getElementById('vision-mask'); const maskEdge = document.getElementById('mask-edge');
             if(visionMask) { visionMask.setAttribute('width', width); visionMask.setAttribute('height', height); }
             if(maskEdge) { maskEdge.setAttribute('width', width); maskEdge.setAttribute('height', height); }
-            canvas.width = width; canvas.height = height;
+            canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+            canvas.style.width = `${width}px`; canvas.style.height = `${height}px`;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             cols = Math.ceil(width / CONFIG.spacing); rows = Math.ceil(height / CONFIG.spacing);
-            const total = cols * rows; targetState = new Int8Array(total); currentState = new Float32Array(total); updatesPerFrame = Math.floor(total * CONFIG.changeSpeed);
+            const total = cols * rows; targetState = new Int8Array(total); currentState = new Float32Array(total); updatesPerFrame = Math.max(1, Math.floor(total * CONFIG.changeSpeed));
             for (let i = 0; i < total; i++) {
                 const rand = Math.random(); let state = (rand < CONFIG.activeRate) ? 1 : (rand < CONFIG.activeRate + CONFIG.invisibleRate ? -1 : 0);
                 targetState[i] = state; currentState[i] = state; 
             }
             createSprites();
         }
-        window.addEventListener('resize', resize); resize();
+        if ('ResizeObserver' in window) {
+            new ResizeObserver(resize).observe(container);
+        } else {
+            window.addEventListener('resize', resize);
+        }
+        resize();
 
         function drawRoundedRect(ctx, x, y, width, height, radius) {
             if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, width, height, radius); return; }
@@ -210,7 +250,7 @@
             }
             requestAnimationFrame(animate);
         }
-        animate();
+        if (!reduceMotion) requestAnimationFrame(animate);
 
         // =========================================================
         // 【2】中枢控制逻辑
@@ -296,8 +336,9 @@
                 }
             }
 
-            const rx = (width / 2) * rippleT; 
-            const ry = (width / 2) * rippleT; 
+            const rippleRadius = (Math.max(width, height) / 2) * rippleT; 
+            const rx = rippleRadius; 
+            const ry = rippleRadius; // 使用容器长边以适配横屏、竖屏和拖拽缩放
             maskRipple.setAttribute('d', getOrganicPath(width/2, height/2, rx, ry, animTime, rippleT));
 
             // ==========================================
@@ -397,7 +438,12 @@
 
             requestAnimationFrame(renderFluidMasks);
         }
-        renderFluidMasks();
+        if (!reduceMotion) {
+            requestAnimationFrame(renderFluidMasks);
+        } else {
+            maskRipple.setAttribute('opacity', '0.35');
+            maskRipple.setAttribute('d', getOrganicPath(width / 2, height / 2, Math.max(width, height) * 0.45, Math.max(width, height) * 0.45, 0, 0.8));
+        }
     </script>
 </body>
 </html>
