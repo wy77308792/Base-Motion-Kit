@@ -31,6 +31,12 @@ Restart Codex after installing. Then invoke it explicitly:
 
 The skill entrypoint is `SKILL.md`; it routes requests through `references/decision-matrix.md` and `references/pattern-catalog.md`.
 
+## Public Preview
+
+Open the rendered gallery:
+
+https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html
+
 ## Update Check
 
 The skill includes a daily update checker. Agents should run it before the first substantive use each day:
