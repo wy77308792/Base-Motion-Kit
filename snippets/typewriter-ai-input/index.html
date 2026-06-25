@@ -406,30 +406,30 @@
 
       const suggestions = [
         {
-          label: "Create enterprise warehouse management table",
-          value: "Create enterprise warehouse management table with item name, inventory quantity, storage location, inbound and outbound records, and status remarks, arrange all business fields in standard table format for daily warehouse operation management."
+          label: "Create warehouse table",
+          value: "Create a warehouse table with item, quantity, location and status."
         },
         {
-          label: "Build product production process control table",
-          value: "Build product production process control table including production order, process node, responsible person, progress status and completion time, organize all production business data into a clear and standardized table layout."
+          label: "Build production table",
+          value: "Build a production table with order, owner, progress and deadline."
         },
         {
-          label: "Make logistics transportation scheduling record table",
-          value: "Make logistics transportation scheduling record table with delivery order number, carrier, route, departure time, arrival status and remarks, sort all transportation business information into a structured business table."
+          label: "Make delivery table",
+          value: "Make a delivery table with carrier, route, time and status."
         }
       ];
 
       const config = {
         baseInputHeight: 24,
         maxInputHeight: 72,
-        typewriterDelay: 1300,
+        typewriterDelay: 250,
         typeSpeed: 30,
         deleteSpeed: 10,
         blinkInterval: 500,
         blinkTimes: 8,
         nextPhraseDelay: 500,
         previewClearDelay: 200,
-        placeholder: "Ask AI to build a table",
+        placeholder: "Ask AI to build",
         animated: !window.matchMedia("(prefers-reduced-motion: reduce)").matches
       };
 
