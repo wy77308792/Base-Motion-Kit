@@ -1,18 +1,18 @@
 ---
-name: animation-patterns
-description: Use when the user asks to add, choose, reuse, or adapt UI animations, including background breathing effects, AI loading buttons, loading illustrations, and hover micro-interactions.
+name: base-motion-kit
+description: Use when the user asks to add, choose, reuse, or adapt UI animations from Base Motion Kit, including background breathing/ripple effects, AI loading buttons, loading illustrations, create/upload entry hover interactions, or when the user wants animation snippets selected by scenario.
 ---
 
-# Animation Patterns
+# Base Motion Kit
 
-This skill routes user animation requests to the local snippet library under `motion-library/snippets`.
+This skill routes animation requests to the local snippet library under `snippets/`.
 
 ## Workflow
 
 1. Identify intent: `ambient`, `loading`, `affordance`, `feedback`, `layout-transition`.
 2. Identify surface: `background`, `overlay`, `button`, `entry-card`, `illustration`.
-3. Read `../references/decision-matrix.md` to choose a snippet.
-4. Read the selected entry in `../references/pattern-catalog.md`.
+3. Read `references/decision-matrix.md` to choose a snippet.
+4. Read the selected entry in `references/pattern-catalog.md`.
 5. Copy or adapt only the selected snippet. Do not scan the whole library unless the user asks for discovery.
 6. Add `prefers-reduced-motion` before production use.
 
@@ -45,3 +45,4 @@ Ask one short question only when both are missing:
 - animation intent
 
 If one is clear, pick the closest subtle animation and state the assumption.
+

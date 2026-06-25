@@ -6,8 +6,9 @@
   "type": "module",
   "files": [
     "README.md",
+    "SKILL.md",
+    "agents",
     "inventory.md",
-    "animation-skill",
     "references",
     "snippets/**/*.html"
   ],

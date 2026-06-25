@@ -1,0 +1,5 @@
+interface:
+  display_name: "Base Motion Kit"
+  short_description: "Choose and adapt reusable UI animation snippets."
+  default_prompt: "Use $base-motion-kit to choose and adapt a UI animation for this screen."
+
