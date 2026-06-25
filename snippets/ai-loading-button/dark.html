@@ -6,10 +6,10 @@
 <title>Magic Particle Button Final Clean</title>
 <style>
   body {
-    background-color: #ffffff;
+    background-color: #1A1A1A;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     min-height: 100vh;
     margin: 0;
     padding: 0;
@@ -217,27 +217,23 @@
   }
 
   /* =========================================
-     页面底图 + 叠加按钮
+     独立按钮预览容器
      ========================================= */
   .screen {
     position: relative;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 320px;
+    min-height: 180px;
     border-radius: 0;
     overflow: visible;
     background: transparent;
     box-shadow: none;
   }
 
-  .screen-img {
-    display: block;
-    height: auto;
-  }
-
-  /* 以页面左上角为 (0,0)，把按钮放到指定坐标 */
   .btn-overlay {
-    position: absolute;
-    left: 1146px;
-    top: 662px;
+    position: relative;
     z-index: 10;
   }
 
@@ -246,8 +242,6 @@
 <body>
 
   <div class="screen">
-    <img class="screen-img" src="asset/System Overview DM.png" data-fallback-src="anset/System%20Overview.png" alt="System Overview" />
-
     <div class="btn-overlay">
       <div class="magic-btn-box">
         
@@ -276,39 +270,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    // 该 PNG 是 2x 切图：在页面里按 1x（宽高减半）展示，坐标按 1x 计算。
-    (function () {
-      const img = document.querySelector(".screen-img");
-      if (!img) return;
-
-      let triedFallback = false;
-
-      // 目录名容错：优先 asset/，失败则尝试 anset/
-      img.addEventListener("error", () => {
-        if (triedFallback) return;
-        const fallback = img.getAttribute("data-fallback-src");
-        if (!fallback) return;
-        triedFallback = true;
-        img.src = fallback;
-      });
-
-      const apply1xSize = () => {
-        if (!img.naturalWidth || !img.naturalHeight) return;
-        const halfWidth = img.naturalWidth / 2;
-        const halfHeight = img.naturalHeight / 2;
-        img.style.width = halfWidth + "px";
-        img.style.height = halfHeight + "px";
-      };
-
-      if (img.complete && img.naturalWidth) {
-        apply1xSize();
-      } else {
-        img.addEventListener("load", apply1xSize, { once: true });
-      }
-    })();
-  </script>
 
 </body>
 </html>

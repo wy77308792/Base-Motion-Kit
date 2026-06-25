@@ -41,7 +41,11 @@ cp -R Base-Motion-Kit/snippets/create-card-scale-hover ./src/components/
 
 ## Asset Policy
 
-Image/video preview assets are intentionally excluded to keep the repository and future package small. The snippets contain code references only; replace demo image backgrounds with project-owned assets when integrating.
+Image/video preview assets are intentionally excluded to keep the repository and future package small. Snippets must not reference bundled image/video files; use inline CSS/SVG or replace with project-owned assets when integrating.
+
+## Dependency Policy
+
+The skill does not require runtime dependencies. Do not install Playwright, browser packages, or animation libraries by default; use the target project's existing tooling for validation.
 
 ## Ambient Ripple Rule
 

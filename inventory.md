@@ -1,6 +1,6 @@
 # Animation Inventory
 
-> DM = dark mode, LM = light mode. Source background images are preview-only assets.
+> DM = dark mode, LM = light mode. Image/video preview assets are excluded; snippets should not reference bundled image files.
 
 | ID | Name | Source | Scenario | Intent | Tech | Variants | Reuse | Snippet |
 |---|---|---|---|---|---|---|---|---|
@@ -24,5 +24,4 @@
 | No `prefers-reduced-motion` fallback in current snippets | Accessibility risk and noisy infinite motion | Add fallback in each productionized snippet |
 | Some snippets include demo page shell | Direct copy may bring unrelated body/background styles | Split into `component.css` + minimal markup |
 | `ambient-ripple` uses large blur and mouse-follow JS | Performance risk on low-end devices | Keep subtle by default; pause or simplify on mobile |
-| `ambient-ripple` uses Tailwind CDN in demo | Not suitable for internal app copy | Remove CDN dependency during extraction |
-| Preview images are part of demos | Not part of reusable animation | Keep under snippet assets only for preview |
+| Demo visual validation may need a browser | Skill users may assume Playwright must be installed | Prefer existing Chrome/Chromium or skip visual validation |

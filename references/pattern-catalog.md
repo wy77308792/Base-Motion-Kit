@@ -6,7 +6,7 @@
 - Use when: page needs soft breathing background or masked ripple around content.
 - Avoid when: dense table/list workbench, low-end mobile, battery-sensitive contexts.
 - Current implementation: CSS blob keyframes, SVG mask, JS mouse tracking.
-- Production notes: use LM/DM files as visual references, not direct product code. Extract a container-fill component that fills the parent with `position:absolute; inset:0; width:100%; height:100%`, recalculates canvas/SVG mask/mouse coordinates from the current container via `ResizeObserver`, removes fixed demo dimensions and Tailwind CDN, exposes colors/speed/blur/opacity as params, and adds reduced-motion fallback. Preserve the original visual recipe; do not add new ring or ripple layers during adaptation.
+- Production notes: use LM/DM files as visual references, not direct product code. Extract a container-fill component that fills the parent with `position:absolute; inset:0; width:100%; height:100%`, recalculates canvas/SVG mask/mouse coordinates from the current container via `ResizeObserver`, removes fixed demo dimensions, exposes colors/speed/blur/opacity as params, and adds reduced-motion fallback. Preserve the original visual recipe; do not add new ring or ripple layers during adaptation.
 - Source files: `snippets/ambient-ripple/light.html`, `snippets/ambient-ripple/dark.html`.
 
 ## `ai-loading-button`
@@ -17,6 +17,11 @@
 - Current implementation: rotating gradient border, glow layer, shine sweep.
 - Production notes: make `loading`, `disabled`, `label`, `tone`, `theme` configurable; avoid running animation when not loading.
 - Source files: `snippets/ai-loading-button/light.html`, `snippets/ai-loading-button/dark.html`.
+
+## Shared Integration Rules
+
+- Do not add Playwright, browser packages, animation libraries, or image asset packages unless the target project already requires them.
+- Do not reference bundled image/video assets from this kit. The snippets are code-only and should use inline CSS/SVG or the consumer project's own assets.
 
 ## `layout-loading-loop`
 

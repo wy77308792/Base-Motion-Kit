@@ -16,6 +16,13 @@ This skill routes animation requests to the local snippet library under `snippet
 5. Copy or adapt only the selected snippet. Do not scan the whole library unless the user asks for discovery.
 6. Add `prefers-reduced-motion` before production use.
 
+## Dependency Rule
+
+- Do not install Playwright, browser packages, animation libraries, or asset packages by default.
+- Visual validation is optional. If validation is needed, prefer an existing system Chrome/Chromium or the user's existing project tooling.
+- If no browser/runtime is available, state that visual validation was skipped instead of adding new dependencies.
+- Snippets must not depend on bundled image/video assets. Use inline CSS/SVG or the consumer project's own assets.
+
 ## `ambient-ripple` Container Rule
 
 When using `ambient-ripple`, do not copy the fixed-size demo directly into a product page. Treat `light.html` / `dark.html` as visual references and extract a container-fill component:
@@ -45,4 +52,3 @@ Ask one short question only when both are missing:
 - animation intent
 
 If one is clear, pick the closest subtle animation and state the assumption.
-

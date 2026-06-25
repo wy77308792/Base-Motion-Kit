@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atlas Vision - Refined Delayed Mouse Trail</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --c1: #0092cc;
@@ -18,14 +17,6 @@
             overflow: hidden;
             font-family: sans-serif;
             position: relative;
-        }
-
-        .stage-under-bg {
-            position: absolute;
-            left: 0; top: 0;
-            width: 1728px; height: 1117px;
-            display: block;
-            z-index: -2; 
         }
 
         .stage {
@@ -109,8 +100,6 @@
     </style>
 </head>
 <body>
-    <img src="asset/Table-3x.png" alt="" class="stage-under-bg" onerror="this.style.border='1px dashed #444'; this.alt='背景图(占位)'">
-
     <div class="stage">
         <div class="vision-container" id="container">
             <svg width="0" height="0" style="position: absolute; pointer-events: none;">
