@@ -9,15 +9,6 @@
 - Production notes: use LM/DM files as visual references, not direct product code. Extract a container-fill component that fills the parent with `position:absolute; inset:0; width:100%; height:100%`, recalculates canvas/SVG mask from the current container via `ResizeObserver`, removes fixed demo dimensions, exposes colors/speed/blur/opacity as params, and adds reduced-motion fallback. Preserve the original visual recipe; do not add mouse-follow, new ring, or new ripple layers during adaptation.
 - Source files: `snippets/ambient-ripple/light.html`, `snippets/ambient-ripple/dark.html`.
 
-## `ai-loading-button`
-
-- Intent: make an AI/primary button feel active while loading.
-- Use when: submit/generate button enters waiting state.
-- Avoid when: button is one of many repeated row actions.
-- Current implementation: rotating gradient border, glow layer, shine sweep.
-- Production notes: make `loading`, `disabled`, `label`, `tone`, `theme` configurable; avoid running animation when not loading.
-- Source files: `snippets/ai-loading-button/light.html`, `snippets/ai-loading-button/dark.html`.
-
 ## Shared Integration Rules
 
 - Do not add Playwright, browser packages, animation libraries, or image asset packages unless the target project already requires them.

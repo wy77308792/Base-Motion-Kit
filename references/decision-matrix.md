@@ -8,7 +8,7 @@ Use this menu when the request is vague, for example: "加点动画", "动起来
 
 Requirements:
 
-- Always show all 5 options below, including each option name and use case.
+- Always show all 4 options below, including each option name and use case.
 - Use the public rendered gallery link by default: `https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html`.
 - Put the clickable rendered preview link in the clarification title sentence, without repeating the same words before the link: `你可以 [预览效果](https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html) 然后选择：`.
 - Tell the user to open the preview page, then reply with the option number.
@@ -25,10 +25,9 @@ launchctl kickstart -k gui/$(id -u)/com.base-motion-kit.gallery
 ```text
 你需要增加什么动画效果？你可以 [预览效果](https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html) 然后选择：
 1. 背景呼吸/涟漪氛围：适合页面背景或局部背景容器
-2. AI loading button/按钮炫光：适合生成、提交、等待状态按钮
-3. 页面加载或页面生成动效：适合页面、模块或数据块加载/生成中
-4. 输入框打字机效果：适合 AI 输入框、提示词输入和 placeholder 示例轮播
-5. 上传/导入卡片按钮 hover 效果：适合上传文件、导入数据入口
+2. 页面加载或页面生成动效：适合页面、模块或数据块加载/生成中
+3. 输入框打字机效果：适合 AI 输入框、提示词输入和 placeholder 示例轮播
+4. 上传/导入卡片按钮 hover 效果：适合上传文件、导入数据入口
 
 请先打开预览链接查看效果，再回复编号；也可以补充目标元素和 light/dark 模式。
 ```
@@ -38,7 +37,6 @@ launchctl kickstart -k gui/$(id -u)/com.base-motion-kit.gallery
 | User wording | Intent | Surface | Default snippet | Ask? |
 |---|---|---|---|---|
 | 背景、氛围、呼吸、涟漪、鼠标跟随、高级感 | ambient | background / overlay | `ambient-ripple` | No, unless target page area is unclear |
-| AI loading、生成中、按钮等待、按钮炫光、蓝紫光 | loading / attention | button | `ai-loading-button` | No |
 | 页面加载或页面生成动效、文档第一个加载动画、加载动画、AI 思考、数据块流转、布局变化 | loading / thinking | illustration | `layout-loading-loop` | No |
 | 输入框、AI 输入框、placeholder、打字机、输入提示、提示词轮播 | feedback / affordance | input | `typewriter-ai-input` | No |
 | 上传/导入卡片按钮 hover 效果、上传、导入、文件入口 | affordance | icon / card entry | `upload-card-hover` | No |

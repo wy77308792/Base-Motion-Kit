@@ -7,7 +7,6 @@ Reusable UI animation snippets and an installable Codex skill for choosing the r
 | Pattern | Use case | Path |
 |---|---|---|
 | `ambient-ripple` | breathing background / ambient ripple | `snippets/ambient-ripple/` |
-| `ai-loading-button` | AI loading / glowing CTA button | `snippets/ai-loading-button/` |
 | `layout-loading-loop` | AI thinking / layout loading illustration | `snippets/layout-loading-loop/` |
 | `typewriter-ai-input` | AI input placeholder typewriter and suggestion dropdown | `snippets/typewriter-ai-input/` |
 | `create-card-hover` | create-entry hover micro-interaction | `snippets/create-card-hover/` |
@@ -25,8 +24,8 @@ git clone https://github.com/wy77308792/Base-Motion-Kit.git ~/.codex/skills/base
 Restart Codex after installing. Then invoke it explicitly:
 
 ```text
-/base-motion-kit 给这个页面加一个 AI loading button
 /base-motion-kit 给背景加呼吸涟漪动画
+/base-motion-kit 给页面生成过程加加载动效
 ```
 
 The skill entrypoint is `SKILL.md`; it routes requests through `references/decision-matrix.md` and `references/pattern-catalog.md`.
