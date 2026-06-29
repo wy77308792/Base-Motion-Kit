@@ -23,6 +23,15 @@
 - Production notes: split timeline CSS from demo shell; expose theme tokens; add static end-state for reduced motion.
 - Source file: `snippets/layout-loading-loop/index.html`.
 
+## `thinking-text-shimmer`
+
+- Intent: communicate AI thinking or generation through subtle text shimmer.
+- Use when: a status label says the AI is thinking, generating, or processing.
+- Avoid when: the text is static helper copy, long paragraph text, or repeated in dense rows.
+- Current implementation: 14px single-line text, base color `#646A73`, dark color `#A6A6A6`, white text-clipped sweep every 1s.
+- Production notes: keep the text short, expose label/theme colors as tokens, and disable the shimmer under reduced motion.
+- Source file: `snippets/thinking-text-shimmer/index.html`.
+
 ## `typewriter-ai-input`
 
 - Intent: make an AI input feel guided with rotating typewriter placeholder examples.

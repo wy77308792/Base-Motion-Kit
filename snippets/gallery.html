@@ -143,6 +143,10 @@
       height: 340px;
     }
 
+    .text-preview iframe {
+      height: 180px;
+    }
+
     .note {
       padding: 10px 16px 14px;
       border-top: 1px solid rgba(75, 96, 130, 0.1);
@@ -195,10 +199,27 @@
       <iframe class="preview-frame" title="页面加载或页面生成动效" src="./layout-loading-loop/index.html?theme=light" data-light-src="./layout-loading-loop/index.html?theme=light" data-dark-src="./layout-loading-loop/index.html?theme=dark"></iframe>
     </section>
 
+    <section class="card text-preview">
+      <div class="card-header">
+        <div>
+          <h2>3. 文字扫光思考动效</h2>
+          <p>适合 AI 思考中、生成中状态文字。</p>
+        </div>
+        <div class="card-tools">
+          <div class="mini-theme" aria-label="文字扫光思考动效主题">
+            <button class="mini-theme-button" type="button" data-frame-title="文字扫光思考动效" data-theme-option="light" aria-pressed="true">Light</button>
+            <button class="mini-theme-button" type="button" data-frame-title="文字扫光思考动效" data-theme-option="dark" aria-pressed="false">Dark</button>
+          </div>
+          <span class="tag">thinking-text-shimmer</span>
+        </div>
+      </div>
+      <iframe class="preview-frame" title="文字扫光思考动效" src="./thinking-text-shimmer/index.html?theme=light" data-light-src="./thinking-text-shimmer/index.html?theme=light" data-dark-src="./thinking-text-shimmer/index.html?theme=dark"></iframe>
+    </section>
+
     <section class="card input-preview">
       <div class="card-header">
         <div>
-          <h2>3. 输入框打字机效果</h2>
+          <h2>4. 输入框打字机效果</h2>
           <p>适合 AI 输入框、提示词输入和 placeholder 示例轮播。</p>
         </div>
         <span class="tag">typewriter-ai-input</span>
@@ -210,7 +231,7 @@
     <section class="card">
       <div class="card-header">
         <div>
-          <h2>4. 上传/导入卡片按钮 hover 效果</h2>
+          <h2>5. 上传/导入卡片按钮 hover 效果</h2>
           <p>适合上传文件、导入数据入口。</p>
         </div>
         <span class="tag">upload-card-hover</span>
