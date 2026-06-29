@@ -14,6 +14,15 @@
 - Do not add Playwright, browser packages, animation libraries, or image asset packages unless the target project already requires them.
 - Do not reference bundled image/video assets from this kit. The snippets are code-only and should use inline CSS/SVG or the consumer project's own assets.
 
+## `thinking-text-shimmer`
+
+- Intent: communicate AI thinking or generation through subtle text shimmer.
+- Use when: a status label says the AI is thinking, generating, or processing.
+- Avoid when: the text is static helper copy, long paragraph text, or repeated in dense rows.
+- Current implementation: 14px PingFang SC Regular single-line text, light color `#8F959E`, dark color `#757575`, text-clipped white shimmer with 40px visual width, 2000ms sweep, 1000ms pause, and `cubic-bezier(0.5, 0, 0.5, 1)` easing.
+- Production notes: keep the text short, expose label/theme colors as tokens, keep the shine clipped to text glyphs, and disable the shimmer under reduced motion.
+- Source file: `snippets/thinking-text-shimmer/index.html`.
+
 ## `layout-loading-loop`
 
 - Intent: communicate AI/data layout processing with a deterministic looping illustration.
@@ -22,15 +31,6 @@
 - Current implementation: 11s CSS timeline, 3 morphing cards, line sweep, icon pop.
 - Production notes: split timeline CSS from demo shell; expose theme tokens; add static end-state for reduced motion.
 - Source file: `snippets/layout-loading-loop/index.html`.
-
-## `thinking-text-shimmer`
-
-- Intent: communicate AI thinking or generation through subtle text shimmer.
-- Use when: a status label says the AI is thinking, generating, or processing.
-- Avoid when: the text is static helper copy, long paragraph text, or repeated in dense rows.
-- Current implementation: 14px single-line text, base color `#646A73`, dark color `#A6A6A6`, white text-clipped sweep every 1s.
-- Production notes: keep the text short, expose label/theme colors as tokens, and disable the shimmer under reduced motion.
-- Source file: `snippets/thinking-text-shimmer/index.html`.
 
 ## `typewriter-ai-input`
 

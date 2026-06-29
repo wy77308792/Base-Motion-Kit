@@ -56,8 +56,8 @@ When using `ambient-ripple`, do not copy the fixed-size demo directly into a pro
 | Request | Snippet |
 |---|---|
 | 背景呼吸 / 涟漪 / 氛围 | `ambient-ripple` |
-| 页面加载或页面生成动效 | `layout-loading-loop` |
 | 文字扫光 / AI 正在思考中 / 思考文字 | `thinking-text-shimmer` |
+| 页面加载或页面生成动效 | `layout-loading-loop` |
 | 输入框打字机 / placeholder 动效 / AI 输入框 | `typewriter-ai-input` |
 | 上传入口 / 导入入口 | `upload-card-hover` |
 
@@ -76,8 +76,8 @@ Requirements for the clarification response:
 ```text
 你需要增加什么动画效果？你可以 [预览效果](https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html) 然后选择：
 1. 背景呼吸/涟漪氛围：适合页面背景或局部背景容器
-2. 页面加载或页面生成动效：适合页面、模块或数据块加载/生成中
-3. 文字扫光思考动效：适合 AI 思考中、生成中状态文字
+2. 文字扫光思考动效：适合 AI 思考中、生成中状态文字
+3. 页面加载或页面生成动效：适合页面、模块或数据块加载/生成中
 4. 输入框打字机效果：适合 AI 输入框、提示词输入和 placeholder 示例轮播
 5. 上传/导入卡片按钮 hover 效果：适合上传文件、导入数据入口
 

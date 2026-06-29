@@ -7,8 +7,8 @@ Reusable UI animation snippets and an installable Codex skill for choosing the r
 | Pattern | Use case | Path |
 |---|---|---|
 | `ambient-ripple` | breathing background / ambient ripple | `snippets/ambient-ripple/` |
-| `layout-loading-loop` | AI thinking / layout loading illustration | `snippets/layout-loading-loop/` |
 | `thinking-text-shimmer` | AI thinking text shimmer | `snippets/thinking-text-shimmer/` |
+| `layout-loading-loop` | AI thinking / layout loading illustration | `snippets/layout-loading-loop/` |
 | `typewriter-ai-input` | AI input placeholder typewriter and suggestion dropdown | `snippets/typewriter-ai-input/` |
 | `create-card-hover` | create-entry hover micro-interaction | `snippets/create-card-hover/` |
 | `create-card-scale-hover` | compact create-entry hover micro-interaction | `snippets/create-card-scale-hover/` |
@@ -26,8 +26,8 @@ Restart Codex after installing. Then invoke it explicitly:
 
 ```text
 /base-motion-kit 给背景加呼吸涟漪动画
-/base-motion-kit 给页面生成过程加加载动效
 /base-motion-kit 给 AI 正在思考中的文字加扫光效果
+/base-motion-kit 给页面生成过程加加载动效
 ```
 
 The skill entrypoint is `SKILL.md`; it routes requests through `references/decision-matrix.md` and `references/pattern-catalog.md`.

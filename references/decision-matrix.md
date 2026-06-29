@@ -25,8 +25,8 @@ launchctl kickstart -k gui/$(id -u)/com.base-motion-kit.gallery
 ```text
 你需要增加什么动画效果？你可以 [预览效果](https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html) 然后选择：
 1. 背景呼吸/涟漪氛围：适合页面背景或局部背景容器
-2. 页面加载或页面生成动效：适合页面、模块或数据块加载/生成中
-3. 文字扫光思考动效：适合 AI 思考中、生成中状态文字
+2. 文字扫光思考动效：适合 AI 思考中、生成中状态文字
+3. 页面加载或页面生成动效：适合页面、模块或数据块加载/生成中
 4. 输入框打字机效果：适合 AI 输入框、提示词输入和 placeholder 示例轮播
 5. 上传/导入卡片按钮 hover 效果：适合上传文件、导入数据入口
 
@@ -38,8 +38,8 @@ launchctl kickstart -k gui/$(id -u)/com.base-motion-kit.gallery
 | User wording | Intent | Surface | Default snippet | Ask? |
 |---|---|---|---|---|
 | 背景、氛围、呼吸、涟漪、鼠标跟随、高级感 | ambient | background / overlay | `ambient-ripple` | No, unless target page area is unclear |
-| 页面加载或页面生成动效、文档第一个加载动画、加载动画、AI 思考、数据块流转、布局变化 | loading / thinking | illustration | `layout-loading-loop` | No |
 | 文字扫光、扫光文字、AI 正在思考中、思考中、生成中文字、流光文字 | loading / thinking | text | `thinking-text-shimmer` | No |
+| 页面加载或页面生成动效、文档第一个加载动画、加载动画、AI 思考、数据块流转、布局变化 | loading / thinking | illustration | `layout-loading-loop` | No |
 | 输入框、AI 输入框、placeholder、打字机、输入提示、提示词轮播 | feedback / affordance | input | `typewriter-ai-input` | No |
 | 上传/导入卡片按钮 hover 效果、上传、导入、文件入口 | affordance | icon / card entry | `upload-card-hover` | No |
 | hover、悬停反馈、微交互 | affordance | unknown | pick by noun: upload/import -> `upload-card-hover` | Ask if noun missing |
