@@ -8,7 +8,7 @@ Use this menu when the request is vague, for example: "加点动画", "动起来
 
 Requirements:
 
-- Always show all 5 options below, including each option name and use case.
+- Always show all 6 options below, including each option name and use case.
 - Use the public rendered gallery link by default: `https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html`.
 - Put the clickable rendered preview link in the clarification title sentence, without repeating the same words before the link: `你可以 [预览效果](https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html) 然后选择：`.
 - Tell the user to open the preview page, then reply with the option number.
@@ -28,7 +28,8 @@ launchctl kickstart -k gui/$(id -u)/com.base-motion-kit.gallery
 2. 文字扫光思考动效：适合 AI 思考中、生成中状态文字
 3. 页面加载或页面生成动效：适合页面、模块或数据块加载/生成中
 4. 输入框打字机效果：适合 AI 输入框、提示词输入和 placeholder 示例轮播
-5. 上传/导入卡片按钮 hover 效果：适合上传文件、导入数据入口
+5. 输入框后弥散点阵动效：适合输入框后方、卡片后方使用
+6. 上传/导入卡片按钮 hover 效果：适合上传文件、导入数据入口
 
 请先打开预览链接查看效果，再回复编号；也可以补充目标元素和 light/dark 模式。
 ```
@@ -41,6 +42,7 @@ launchctl kickstart -k gui/$(id -u)/com.base-motion-kit.gallery
 | 文字扫光、扫光文字、AI 正在思考中、思考中、生成中文字、流光文字 | loading / thinking | text | `thinking-text-shimmer` | No |
 | 页面加载或页面生成动效、文档第一个加载动画、加载动画、AI 思考、数据块流转、布局变化 | loading / thinking | illustration | `layout-loading-loop` | No |
 | 输入框、AI 输入框、placeholder、打字机、输入提示、提示词轮播 | feedback / affordance | input | `typewriter-ai-input` | No |
+| 输入框后弥散点阵、输入框背景、输入框背后、卡片后方、粒子背景、颜色弥散、星光、跟手、鼠标跟随输入框 | ambient / feedback | input/card background | `particle-input-ambient` | Ask only if target element is unclear |
 | 上传/导入卡片按钮 hover 效果、上传、导入、文件入口 | affordance | icon / card entry | `upload-card-hover` | No |
 | hover、悬停反馈、微交互 | affordance | unknown | pick by noun: upload/import -> `upload-card-hover` | Ask if noun missing |
 | 加点动画、动起来、高级一点、帮我加个动效 | unknown | unknown | none | Show clarification menu |
@@ -54,6 +56,7 @@ launchctl kickstart -k gui/$(id -u)/com.base-motion-kit.gallery
 5. Always add `prefers-reduced-motion`.
 6. If the user has not specified light/dark mode, provide both when the snippet has both.
 7. For `ambient-ripple`, always adapt it into a parent-container-fill implementation before use; never ship the fixed-size demo dimensions.
+8. For `particle-input-ambient`, attach only the background layer behind an existing card/input/container. If the target is not explicit, list likely target elements from the page/code and ask the user to choose before implementation.
 
 ## Default Intensity
 

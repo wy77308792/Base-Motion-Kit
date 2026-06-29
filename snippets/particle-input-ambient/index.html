@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Particle Input Ambient</title>
+  <script>
+    const initialTheme = new URLSearchParams(window.location.search).get("theme");
+    if (initialTheme === "dark" || initialTheme === "light") {
+      document.documentElement.setAttribute("data-theme", initialTheme);
+    }
+  </script>
+  <style>
+    :root,
+    html[data-theme="light"] {
+      --page-bg: #ffffff;
+      --input-bg: #ffffff;
+      --input-border: #e5e7eb;
+      --input-text: #1f2937;
+      --placeholder: #9ca3af;
+      --button-bg: #d1d5db;
+      --button-active: #111827;
+      --dot-color: 255, 255, 255;
+      --dot-base-alpha: 0.7;
+      --active-dot-color: 255, 255, 255;
+      --active-dot-glow: #ffffff;
+      --blob-two: #41b0ff;
+    }
+
+    html[data-theme="dark"] {
+      --page-bg: #171717;
+      --input-bg: #292929;
+      --input-border: #414855;
+      --input-text: #ffffff;
+      --placeholder: #757575;
+      --button-bg: #404040;
+      --button-active: #000000;
+      --dot-color: 36, 127, 194;
+      --dot-base-alpha: 0.4;
+      --active-dot-color: 255, 255, 255, 0.2;
+      --active-dot-glow: #3ea3ee;
+      --blob-two: #0095ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      background: var(--page-bg);
+      font-family: "SF Pro Text", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      padding: 28px;
+      overflow: hidden;
+    }
+
+    .particle-ambient-host {
+      --target-height: 120px;
+      --source-input-height: 120px;
+      --effect-visible-height: 190px;
+      --mouse-x: 0.5;
+      --mouse-y: 0.5;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .particle-ambient-demo {
+      width: min(720px, calc(100vw - 40px));
+      height: var(--target-height);
+    }
+
+    /*
+      Reusable background layer.
+      Attach this as an absolutely positioned sibling behind a real card/input.
+      Keep the consumer's real card/input above it with a higher z-index.
+    */
+    .particle-ambient-background {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .particle-ambient-effects {
+      position: absolute;
+      z-index: 0;
+      right: 0;
+      top: calc(-1 * var(--effect-visible-height));
+      bottom: 0;
+      left: 0;
+      overflow: hidden;
+      pointer-events: none;
+      mask-image:
+        linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
+        linear-gradient(to bottom, black 0%, black calc(100% - var(--target-height) + 12px), transparent 100%);
+      -webkit-mask-image:
+        linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
+        linear-gradient(to bottom, black 0%, black calc(100% - var(--target-height) + 12px), transparent 100%);
+      mask-composite: intersect;
+      -webkit-mask-composite: source-in;
+    }
+
+    .particle-ambient-origin {
+      position: absolute;
+      right: 0;
+      top: var(--effect-visible-height);
+      left: 0;
+      height: var(--source-input-height);
+      pointer-events: none;
+      isolation: isolate;
+    }
+
+    .ambient-glow {
+      position: absolute;
+      z-index: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      margin: 0 auto;
+      width: 80%;
+      height: 120px;
+      border-radius: 999px;
+      filter: blur(20px);
+      opacity: 0.6;
+      pointer-events: none;
+      transform: translateY(-50px) scale(0.85);
+      transition: all 3200ms cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    .is-opening .ambient-glow {
+      width: calc(100% + 60px);
+      height: 320px;
+      border-radius: 150px;
+      opacity: 1;
+      transform: translateY(10px) scale(0.85);
+      transition-duration: 800ms;
+      transition-timing-function: ease-out;
+    }
+
+    .is-active .ambient-glow {
+      width: 90%;
+      height: 140px;
+      border-radius: 150px;
+      opacity: 0.7;
+      transform: translateY(-40px) scale(0.95);
+      transition-duration: 500ms;
+      transition-timing-function: ease-out;
+    }
+
+    .ambient-mask {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      mask-image: linear-gradient(to top, black 0%, black 30%, transparent 90%);
+      -webkit-mask-image: linear-gradient(to top, black 0%, black 30%, transparent 90%);
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 999px;
+      mix-blend-mode: multiply;
+      filter: blur(90px);
+      transition: opacity 500ms ease-out, transform 500ms ease-out;
+    }
+
+    html[data-theme="dark"] .blob {
+      mix-blend-mode: multiply;
+    }
+
+    .blob-one {
+      bottom: -20%;
+      left: 0;
+      width: 40%;
+      height: 160px;
+      animation: wave-blob-1 8s infinite ease-in-out, color-blue-purple 6s infinite ease-in-out;
+    }
+
+    .blob-two {
+      bottom: -5%;
+      left: 20%;
+      width: 60%;
+      height: 330px;
+      background: var(--blob-two);
+      filter: blur(120px);
+      animation: wave-blob-2 10s infinite ease-in-out;
+    }
+
+    .blob-three {
+      bottom: -20%;
+      left: 60%;
+      width: 40%;
+      height: 200px;
+      animation: wave-blob-3 9s infinite ease-in-out, color-purple-blue 6s infinite ease-in-out;
+    }
+
+    .particle-ambient-host:not(.is-opening):not(.is-active) .blob-one,
+    .particle-ambient-host:not(.is-opening):not(.is-active) .blob-three {
+      opacity: 0.6;
+      transform: scale(0.75);
+    }
+
+    .particle-ambient-host:not(.is-opening):not(.is-active) .blob-two {
+      opacity: 0.5;
+      transform: scale(0.75);
+    }
+
+    .is-active .blob-one {
+      opacity: 0.8;
+      transform: scale(0.85);
+    }
+
+    .is-active .blob-two {
+      opacity: 0.6;
+      transform: scale(0.85);
+    }
+
+    .is-active .blob-three {
+      opacity: 0.7;
+      transform: scale(0.85);
+    }
+
+    .mouse-glow {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 500ms ease-out;
+    }
+
+    .is-active .mouse-glow {
+      opacity: 1;
+    }
+
+    .mouse-glow::before {
+      position: absolute;
+      bottom: calc(-25% + (1 - var(--mouse-y, 0.5)) * 60px);
+      left: calc(var(--mouse-x, 0.5) * 100% - 20%);
+      width: 40%;
+      height: 280px;
+      border-radius: 999px;
+      background: #f75bff;
+      filter: blur(80px);
+      mix-blend-mode: multiply;
+      transform: translate3d(0, 0, 0) scaleY(calc(1 + (1 - var(--mouse-y, 0.5)) * 0.3));
+      animation: color-purple-blue 7s infinite ease-in-out;
+      content: "";
+    }
+
+    html[data-theme="dark"] .mouse-glow::before {
+      mix-blend-mode: screen;
+    }
+
+    html[data-theme="dark"] .blob-one {
+      animation-name: wave-blob-1, color-blue-purple-dark;
+    }
+
+    html[data-theme="dark"] .blob-three,
+    html[data-theme="dark"] .mouse-glow::before {
+      animation-name: wave-blob-3, color-purple-blue-dark;
+    }
+
+    .star-field {
+      position: absolute;
+      z-index: 2;
+      bottom: 0;
+      left: 50%;
+      width: 80%;
+      height: 120px;
+      overflow: hidden;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(-50px) scale(0.85);
+      transform-origin: 50% 100%;
+      transition: opacity 3200ms cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    .is-opening .star-field {
+      width: calc(100% + 60px);
+      height: 320px;
+      border-radius: 150px;
+      transform: translateX(-50%) translateY(10px) scale(0.85);
+    }
+
+    .is-active .star-field {
+      width: 90%;
+      height: 140px;
+      border-radius: 150px;
+      transform: translateX(-50%) translateY(-40px) scale(0.95);
+    }
+
+    .is-opening .star-field,
+    .is-active .star-field {
+      opacity: 1;
+      transition-duration: 600ms;
+      transition-timing-function: ease-out;
+    }
+
+    .star-field canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      mask-image: linear-gradient(to top, black 0%, black 30%, transparent 90%);
+      -webkit-mask-image: linear-gradient(to top, black 0%, black 30%, transparent 90%);
+    }
+
+    .preview-input-card {
+      position: relative;
+      z-index: 4;
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--input-border);
+      border-radius: 28px;
+      background: var(--input-bg);
+      box-shadow: 0 18px 45px rgba(31, 41, 55, 0.08);
+    }
+
+    html[data-theme="dark"] .preview-input-card {
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+    }
+
+    .preview-input-layout {
+      display: flex;
+      height: 100%;
+      align-items: flex-end;
+      gap: 12px;
+      padding: 18px;
+    }
+
+    textarea {
+      flex: 1 1 auto;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      resize: none;
+      background: transparent;
+      color: var(--input-text);
+      font: 400 14px/22px "SF Pro Text", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    textarea::placeholder {
+      color: var(--placeholder);
+    }
+
+    .send-button {
+      display: grid;
+      flex: 0 0 auto;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 0;
+      border-radius: 999px;
+      background: var(--button-bg);
+      color: #ffffff;
+      cursor: pointer;
+      transition: background 200ms ease, color 200ms ease, transform 200ms ease;
+    }
+
+    .has-value .send-button {
+      background: var(--button-active);
+      color: var(--page-bg);
+    }
+
+    .send-button:active {
+      transform: scale(0.96);
+    }
+
+    @keyframes color-blue-purple {
+      0% { background: #48e4ff; }
+      33% { background: #f75bff; }
+      66% { background: #e0ffff; }
+      100% { background: #48e4ff; }
+    }
+
+    @keyframes color-purple-blue {
+      0% { background: #f75bff; }
+      33% { background: #48e4ff; }
+      66% { background: #ffe0ff; }
+      100% { background: #f75bff; }
+    }
+
+    @keyframes color-blue-purple-dark {
+      0% { background: #0095ff; }
+      33% { background: #000000; }
+      66% { background: #c354c9; }
+      100% { background: #0095ff; }
+    }
+
+    @keyframes color-purple-blue-dark {
+      0% { background: #2b00ff; }
+      33% { background: #0095ff; }
+      66% { background: #54acff; }
+      100% { background: #2b00ff; }
+    }
+
+    @keyframes wave-blob-1 {
+      0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+      33% { transform: translate3d(20px, -10px, 0) rotate(15deg) scale(1.02); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+      66% { transform: translate3d(-20px, 20px, 0) rotate(-10deg) scale(0.9); border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+      100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    }
+
+    @keyframes wave-blob-2 {
+      0% { transform: translate3d(0, 0, 0) rotate(0deg); border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+      50% { transform: translate3d(0, -40px, 0) rotate(10deg) scale(1.15); border-radius: 50% 50% 20% 80% / 25% 80% 20% 75%; }
+      100% { transform: translate3d(0, 0, 0) rotate(0deg); border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+    }
+
+    @keyframes wave-blob-3 {
+      0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); border-radius: 70% 30% 30% 70% / 60% 40% 60% 40%; }
+      33% { transform: translate3d(-30px, -20px, 0) rotate(-15deg) scale(1.05); border-radius: 30% 70% 60% 40% / 70% 60% 40% 30%; }
+      66% { transform: translate3d(20px, 30px, 0) rotate(5deg) scale(0.95); border-radius: 50% 50% 40% 60% / 40% 50% 50% 60%; }
+      100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); border-radius: 70% 30% 30% 70% / 60% 40% 60% 40%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ambient-glow,
+      .blob,
+      .mouse-glow::before,
+      .star-field,
+      .send-button {
+        animation: none;
+        transition: none;
+      }
+
+      .star-field,
+      .mouse-glow {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="particle-ambient-demo particle-ambient-host is-opening" id="particleAmbientDemo">
+    <div class="particle-ambient-background" data-particle-ambient aria-hidden="true">
+      <div class="particle-ambient-effects">
+        <div class="particle-ambient-origin">
+          <div class="ambient-glow">
+            <div class="ambient-mask">
+              <div class="blob blob-one"></div>
+              <div class="blob blob-two"></div>
+              <div class="blob blob-three"></div>
+              <div class="mouse-glow"></div>
+            </div>
+          </div>
+          <div class="star-field">
+            <canvas></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Preview shell only. In production, attach the background layer behind the consumer's real card/input. -->
+    <div class="preview-input-card">
+      <div class="preview-input-layout">
+        <textarea id="ambientInput" placeholder="Describe what you want to build"></textarea>
+        <button class="send-button" type="button" aria-label="Submit">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M12.656 7.79c.289-.157.469-.46.469-.79s-.18-.632-.469-.789L2.194.547A.899.899 0 0 0 .875 1.336l1.154 4.508 4.908.718c.281 0 .508.196.508.438s-.227.437-.508.437c-2.766.406-4.401.644-4.906.714L.875 12.664c0 .32.164.608.438.773.273.162.602.169.881.017L12.656 7.79Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function setupParticleAmbient(root) {
+      const canvas = root.querySelector("canvas");
+      const owner = root.closest(".particle-ambient-demo") || root.parentElement;
+      const ctx = canvas.getContext("2d");
+      const mouseHistory = [];
+      let delayFrame = 0;
+      let dotsFrame = 0;
+      let cols = 0;
+      let rows = 0;
+      let width = 0;
+      let height = 0;
+      let targetState = new Int8Array();
+      let currentState = new Float32Array();
+      let updatesPerFrame = 0;
+      let baseSprite = null;
+      let activeSprite = null;
+      let activeOffset = 0;
+
+      owner.classList.add("particle-ambient-host");
+      if (getComputedStyle(owner).position === "static") {
+        owner.style.position = "relative";
+      }
+
+      const config = {
+        spacing: 10,
+        baseSize: 2,
+        baseRadius: 0.6,
+        baseAlpha: 0.7,
+        activeSize: 3,
+        activeRadius: 1,
+        activeAlpha: 1,
+        glowBlur: 6,
+        activeRate: 0.08,
+        invisibleRate: 0.3,
+        changeSpeed: 0.05,
+        fadeStep: 0.1
+      };
+
+      function drawRoundedRect(target, x, y, rectWidth, rectHeight, radius) {
+        if (target.roundRect) {
+          target.beginPath();
+          target.roundRect(x, y, rectWidth, rectHeight, radius);
+          return;
+        }
+        target.beginPath();
+        target.moveTo(x + radius, y);
+        target.lineTo(x + rectWidth - radius, y);
+        target.quadraticCurveTo(x + rectWidth, y, x + rectWidth, y + radius);
+        target.lineTo(x + rectWidth, y + rectHeight - radius);
+        target.quadraticCurveTo(x + rectWidth, y + rectHeight, x + rectWidth - radius, y + rectHeight);
+        target.lineTo(x + radius, y + rectHeight);
+        target.quadraticCurveTo(x, y + rectHeight, x, y + rectHeight - radius);
+        target.lineTo(x, y + radius);
+        target.quadraticCurveTo(x, y, x + radius, y);
+      }
+
+      function createSprites() {
+        const dpr = window.devicePixelRatio || 1;
+        const themeStyle = getComputedStyle(document.documentElement);
+        const dotColor = themeStyle.getPropertyValue("--dot-color").trim() || "255, 255, 255";
+        config.baseAlpha = Number(themeStyle.getPropertyValue("--dot-base-alpha").trim()) || config.baseAlpha;
+        const base = document.createElement("canvas");
+        base.width = config.baseSize * dpr;
+        base.height = config.baseSize * dpr;
+        const baseCtx = base.getContext("2d");
+        baseCtx.scale(dpr, dpr);
+        baseCtx.fillStyle = `rgba(${dotColor}, ${config.baseAlpha})`;
+        drawRoundedRect(baseCtx, 0, 0, config.baseSize, config.baseSize, config.baseRadius);
+        baseCtx.fill();
+        baseSprite = base;
+
+        const padding = config.glowBlur * 2;
+        const size = config.activeSize + padding * 2;
+        const active = document.createElement("canvas");
+        active.width = size * dpr;
+        active.height = size * dpr;
+        const activeCtx = active.getContext("2d");
+        activeCtx.scale(dpr, dpr);
+        activeCtx.translate(padding, padding);
+        const activeDotColor = themeStyle.getPropertyValue("--active-dot-color").trim() || dotColor;
+        activeCtx.fillStyle = activeDotColor.split(",").length === 4
+          ? `rgba(${activeDotColor})`
+          : `rgba(${activeDotColor}, ${config.activeAlpha})`;
+        activeCtx.shadowColor = themeStyle.getPropertyValue("--active-dot-glow").trim() || "white";
+        activeCtx.shadowBlur = config.glowBlur;
+        drawRoundedRect(activeCtx, 0, 0, config.activeSize, config.activeSize, config.activeRadius);
+        activeCtx.fill();
+        activeSprite = active;
+        activeOffset = padding + (config.activeSize - config.baseSize) / 2;
+      }
+
+      function resizeDots() {
+        const ownerRect = owner.getBoundingClientRect();
+        if (ownerRect.height > 0) {
+          owner.style.setProperty("--target-height", `${ownerRect.height}px`);
+        }
+        const rect = canvas.parentElement.getBoundingClientRect();
+        width = rect.width;
+        height = rect.height;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        cols = Math.ceil(width / config.spacing);
+        rows = Math.ceil(height / config.spacing);
+        const total = cols * rows;
+        targetState = new Int8Array(total);
+        currentState = new Float32Array(total);
+        updatesPerFrame = Math.max(1, Math.floor(total * config.changeSpeed));
+        for (let index = 0; index < total; index += 1) {
+          const rand = Math.random();
+          const state = rand < config.activeRate ? 1 : rand < config.activeRate + config.invisibleRate ? -1 : 0;
+          targetState[index] = state;
+          currentState[index] = state;
+        }
+        createSprites();
+      }
+
+      function updateRandomTargets(total) {
+        for (let count = 0; count < updatesPerFrame; count += 1) {
+          const index = Math.floor(Math.random() * total);
+          const rand = Math.random();
+          targetState[index] = rand < config.activeRate ? 1 : rand < config.activeRate + config.invisibleRate ? -1 : 0;
+        }
+      }
+
+      function drawDots() {
+        ctx.clearRect(0, 0, width, height);
+        const total = cols * rows;
+        const dpr = window.devicePixelRatio || 1;
+        const spriteSize = activeSprite ? activeSprite.width / dpr : 0;
+        const themeStyle = getComputedStyle(document.documentElement);
+        const activeDotColor = themeStyle.getPropertyValue("--active-dot-color").trim() || "255, 255, 255";
+        const activeDotParts = activeDotColor.split(",");
+        const activeDotGlow = themeStyle.getPropertyValue("--active-dot-glow").trim() || "white";
+        updateRandomTargets(total);
+
+        for (let col = 0; col < cols; col += 1) {
+          const x = col * config.spacing;
+          const fadeDist = width * 0.2;
+          let colOpacity = 1;
+          if (x < fadeDist) colOpacity = x / fadeDist;
+          else if (x > width - fadeDist) colOpacity = (width - x) / fadeDist;
+          if (colOpacity <= 0.01) continue;
+
+          for (let row = 0; row < rows; row += 1) {
+            const index = row * cols + col;
+            const target = targetState[index];
+            let current = currentState[index];
+            if (current !== target) {
+              current = Math.abs(current - target) < config.fadeStep
+                ? target
+                : current + Math.sign(target - current) * config.fadeStep;
+              currentState[index] = current;
+            }
+            if (current <= -0.99) continue;
+
+            const y = row * config.spacing;
+            if (Math.abs(current) < 0.01) {
+              ctx.globalAlpha = colOpacity;
+              ctx.drawImage(baseSprite, x, y, config.baseSize, config.baseSize);
+              ctx.globalAlpha = 1;
+              continue;
+            }
+
+            if (current >= 0.99) {
+              const destX = x - activeOffset + (config.activeSize - config.baseSize) / 2;
+              const destY = y - activeOffset + (config.activeSize - config.baseSize) / 2;
+              ctx.globalAlpha = colOpacity;
+              ctx.drawImage(activeSprite, destX, destY, spriteSize, spriteSize);
+              ctx.globalAlpha = 1;
+              continue;
+            }
+
+            const rising = current > 0;
+            const t = rising ? current : current + 1;
+            const size = rising ? config.baseSize * (1 - t) + config.activeSize * t : config.baseSize;
+            const radius = rising ? config.baseRadius * (1 - t) + config.activeRadius * t : config.baseRadius;
+            const alpha = rising ? config.baseAlpha * (1 - t) + config.activeAlpha * t : config.baseAlpha * t;
+            const offset = (size - config.baseSize) / 2;
+            ctx.fillStyle = activeDotParts.length === 4
+              ? `rgba(${activeDotParts.slice(0, 3).join(",")}, ${Number(activeDotParts[3]) * alpha * colOpacity})`
+              : `rgba(${activeDotColor}, ${alpha * colOpacity})`;
+            if (current > 0.5) {
+              ctx.shadowColor = activeDotGlow;
+              ctx.shadowBlur = config.glowBlur * current;
+            } else {
+              ctx.shadowBlur = 0;
+            }
+            drawRoundedRect(ctx, x - offset, y - offset, size, size, radius);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        }
+        dotsFrame = requestAnimationFrame(drawDots);
+      }
+
+      function updateDelayedPointer() {
+        const now = performance.now();
+        const delay = 160;
+        while (mouseHistory.length > 2 && now - mouseHistory[1].time > delay) {
+          mouseHistory.shift();
+        }
+        if (mouseHistory.length > 0 && now - mouseHistory[0].time >= delay) {
+          owner.style.setProperty("--mouse-x", mouseHistory[0].x);
+          owner.style.setProperty("--mouse-y", mouseHistory[0].y);
+        }
+        delayFrame = requestAnimationFrame(updateDelayedPointer);
+      }
+
+      function handlePointerMove(event) {
+        const rect = owner.getBoundingClientRect();
+        mouseHistory.push({
+          x: (event.clientX - rect.left) / rect.width,
+          y: (event.clientY - rect.top) / rect.height,
+          time: performance.now()
+        });
+      }
+
+      function setActive(active) {
+        owner.classList.toggle("is-active", active);
+      }
+
+      const resizeObserver = new ResizeObserver(resizeDots);
+      resizeObserver.observe(owner);
+      resizeObserver.observe(canvas.parentElement);
+      owner.addEventListener("pointerenter", () => setActive(true));
+      owner.addEventListener("pointermove", handlePointerMove);
+      owner.addEventListener("pointerleave", () => setActive(false));
+      setTimeout(() => owner.classList.remove("is-opening"), 900);
+      resizeDots();
+      delayFrame = requestAnimationFrame(updateDelayedPointer);
+      dotsFrame = requestAnimationFrame(drawDots);
+
+      return () => {
+        resizeObserver.disconnect();
+        cancelAnimationFrame(delayFrame);
+        cancelAnimationFrame(dotsFrame);
+      };
+    }
+
+    const cleanupAmbient = [...document.querySelectorAll("[data-particle-ambient]")].map(setupParticleAmbient);
+    const demo = document.getElementById("particleAmbientDemo");
+    const input = document.getElementById("ambientInput");
+    input.addEventListener("input", () => {
+      demo.classList.toggle("has-value", input.value.length > 0);
+      demo.classList.add("is-active");
+    });
+    input.addEventListener("focus", () => demo.classList.add("is-active"));
+    input.addEventListener("blur", () => demo.classList.remove("is-active"));
+
+    window.addEventListener("beforeunload", () => {
+      cleanupAmbient.forEach((cleanup) => cleanup());
+    });
+  </script>
+</body>
+</html>

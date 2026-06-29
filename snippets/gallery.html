@@ -143,6 +143,10 @@
       height: 340px;
     }
 
+    .ambient-input-preview iframe {
+      height: 340px;
+    }
+
     .text-preview iframe {
       height: 180px;
     }
@@ -228,10 +232,28 @@
       <div class="note">点击输入框查看候选展开，hover 候选可预览，点击候选会填入输入框。</div>
     </section>
 
+    <section class="card ambient-input-preview">
+      <div class="card-header">
+        <div>
+          <h2>5. 输入框后弥散点阵动效</h2>
+          <p>适合输入框后方、卡片后方使用。</p>
+        </div>
+        <div class="card-tools">
+          <div class="mini-theme" aria-label="输入框后弥散点阵动效主题">
+            <button class="mini-theme-button" type="button" data-frame-title="输入框后弥散点阵动效" data-theme-option="light" aria-pressed="true">Light</button>
+            <button class="mini-theme-button" type="button" data-frame-title="输入框后弥散点阵动效" data-theme-option="dark" aria-pressed="false">Dark</button>
+          </div>
+          <span class="tag">particle-input-ambient</span>
+        </div>
+      </div>
+      <iframe class="preview-frame" title="输入框后弥散点阵动效" src="./particle-input-ambient/index.html?theme=light" data-light-src="./particle-input-ambient/index.html?theme=light" data-dark-src="./particle-input-ambient/index.html?theme=dark"></iframe>
+      <div class="note">预览页展示输入框效果；实际复用时只挂载背景层到已有输入框或卡片背后。</div>
+    </section>
+
     <section class="card">
       <div class="card-header">
         <div>
-          <h2>5. 上传/导入卡片按钮 hover 效果</h2>
+          <h2>6. 上传/导入卡片按钮 hover 效果</h2>
           <p>适合上传文件、导入数据入口。</p>
         </div>
         <span class="tag">upload-card-hover</span>

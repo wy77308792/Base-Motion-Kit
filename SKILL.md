@@ -1,6 +1,6 @@
 ---
 name: base-motion-kit
-description: Use when the user asks to add, choose, reuse, or adapt UI animations from Base Motion Kit, including background breathing/ripple effects, loading illustrations, thinking text shimmer, input typewriter placeholders, upload entry hover interactions, or when the user wants animation snippets selected by scenario.
+description: Use when the user asks to add, choose, reuse, or adapt UI animations from Base Motion Kit, including background breathing/ripple effects, loading illustrations, thinking text shimmer, input typewriter placeholders, particle input background effects, upload entry hover interactions, or when the user wants animation snippets selected by scenario.
 ---
 
 # Base Motion Kit
@@ -51,6 +51,18 @@ When using `ambient-ripple`, do not copy the fixed-size demo directly into a pro
 - Preserve the original visual recipe: blob colors, blur style, mask ripple, edge breathing, and dot matrix. Do not add mouse-follow layers or new visual layers unless the user asks for a visual redesign.
 - If the target environment cannot run JS, fallback to a static full-container gradient with reduced motion.
 
+## `particle-input-ambient` Target Rule
+
+When using `particle-input-ambient`, treat it as a background animation layer, not an input component.
+
+- If the user clearly names or selects the target card/input/container, attach the background directly behind that existing element.
+- If the target is unclear, inspect the current page/code for likely cards, inputs, prompt boxes, or container elements, list the candidates briefly, and ask the user to choose one before implementing.
+- Do not replace the consumer's input markup in production. The input in `snippets/particle-input-ambient/index.html` is preview-only.
+- Wrap or use the target's existing wrapper as a `position: relative` host, insert `.particle-ambient-background[data-particle-ambient]` as an absolutely positioned layer behind the target, and keep the real target above it with a higher `z-index`.
+- Use `ResizeObserver` or equivalent resize handling to read the host width/height and set `--target-height`; keep `--source-input-height: 120px` so the original visual recipe stays stable while the bottom of the effect is clipped for shorter/taller targets.
+- Preserve layer order: color blobs at the bottom, delayed pointer glow above blobs, star/particle canvas above the glow, real card/input above the animation.
+- If the target environment cannot run JS, fallback to a static clipped gradient behind the target.
+
 ## Defaults
 
 | Request | Snippet |
@@ -59,6 +71,7 @@ When using `ambient-ripple`, do not copy the fixed-size demo directly into a pro
 | 文字扫光 / AI 正在思考中 / 思考文字 | `thinking-text-shimmer` |
 | 页面加载或页面生成动效 | `layout-loading-loop` |
 | 输入框打字机 / placeholder 动效 / AI 输入框 | `typewriter-ai-input` |
+| 输入框后弥散点阵 / 输入框后方 / 卡片后方 | `particle-input-ambient` |
 | 上传入口 / 导入入口 | `upload-card-hover` |
 
 ## Clarification
@@ -67,7 +80,7 @@ If the user has not clearly specified what animation to add, ask them to choose 
 
 Requirements for the clarification response:
 
-- Always show all 5 options below, including each option name and use case.
+- Always show all 6 options below, including each option name and use case.
 - Use the public rendered gallery link by default: `https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html`.
 - Put the clickable rendered preview link in the clarification title sentence, without repeating the same words before the link: `你可以 [预览效果](https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html) 然后选择：`.
 - Tell the user to open the preview page, then reply with the option number.
@@ -79,7 +92,8 @@ Requirements for the clarification response:
 2. 文字扫光思考动效：适合 AI 思考中、生成中状态文字
 3. 页面加载或页面生成动效：适合页面、模块或数据块加载/生成中
 4. 输入框打字机效果：适合 AI 输入框、提示词输入和 placeholder 示例轮播
-5. 上传/导入卡片按钮 hover 效果：适合上传文件、导入数据入口
+5. 输入框后弥散点阵动效：适合输入框后方、卡片后方使用
+6. 上传/导入卡片按钮 hover 效果：适合上传文件、导入数据入口
 
 请先打开预览链接查看效果，再回复编号；也可以补充目标元素和 light/dark 模式。
 ```
@@ -90,7 +104,7 @@ Do not ask if either the target surface or animation intent maps clearly to the 
 
 Use `https://wy77308792.github.io/Base-Motion-Kit/snippets/gallery.html` as the stable rendered preview surface for clarification. Do not generate an ad hoc preview page during clarification unless the user asks for a custom preview.
 
-For vague requests, never output a shortened menu. The response must include the complete 5-option clarification menu, and the clickable rendered gallery link must appear in the title sentence before the option list. Do not output a `file://` path or localhost URL as the main preview link. Do not promise native clickable cards because Codex/Claude skill text cannot reliably control client UI widgets.
+For vague requests, never output a shortened menu. The response must include the complete 6-option clarification menu, and the clickable rendered gallery link must appear in the title sentence before the option list. Do not output a `file://` path or localhost URL as the main preview link. Do not promise native clickable cards because Codex/Claude skill text cannot reliably control client UI widgets.
 
 Only use the local gallery URL for local development or unpublished changes: `http://127.0.0.1:8765/snippets/gallery.html`. If the local URL is needed but not reachable, start or reload the persistent LaunchAgent below. Serve the installed skill directory because macOS may block background services from reading `Documents`:
 

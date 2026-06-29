@@ -41,6 +41,15 @@
 - Production notes: copy only the input card and its local script; keep the consumer layout outside this snippet. Preserve focus/dropdown/hover/click behavior, replace demo prompts/icons with product content, and use a static placeholder under reduced motion.
 - Source file: `snippets/typewriter-ai-input/index.html`.
 
+## `particle-input-ambient`
+
+- Intent: make an AI prompt input feel active through a soft color field, star-like particle canvas, and delayed pointer-follow glow.
+- Use when: an input or card needs a richer background response behind it, especially primary AI creation entries.
+- Avoid when: the input is inside dense tables, repeated forms, low-end mobile views, or a calm enterprise workbench surface.
+- Current implementation: standalone HTML/CSS/JS extraction from `Downloads/Homepage 0311_副本/输入框和 title 效果调整.html`; packages the reusable background layer with three animated color blobs, canvas star particles, and 160ms delayed pointer-follow glow. The input card in the HTML file is preview-only.
+- Production notes: attach `.particle-ambient-background[data-particle-ambient]` behind the consumer's existing card/input/container. If the user does not clearly identify the target, inspect the page/code and ask them to choose from likely cards or inputs before implementation. Do not replace the consumer's input markup. Keep the host `position: relative`, put the real target above the animation with a higher `z-index`, read host width/height via `ResizeObserver`, set `--target-height`, keep `--source-input-height: 120px`, expose blob colors and delay as tokens, and disable particles/pointer glow under reduced motion. Do not reintroduce bundled image assets.
+- Source file: `snippets/particle-input-ambient/index.html`.
+
 ## `create-card-hover`
 
 - Intent: lightweight hover affordance for create/new entry.
