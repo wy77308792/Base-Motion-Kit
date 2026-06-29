@@ -15,11 +15,14 @@
     html[data-theme="light"] {
       --page-bg: #ffffff;
       --input-bg: #ffffff;
-      --input-border: #e5e7eb;
-      --input-text: #1f2937;
-      --placeholder: #9ca3af;
-      --button-bg: #d1d5db;
-      --button-active: #111827;
+      --input-border: #dee0e3;
+      --input-text: #1f2329;
+      --placeholder: #8f959e;
+      --icon-color: #646a73;
+      --button-bg: #eff1f4;
+      --button-text: #bbbfc4;
+      --button-active: #1f2329;
+      --input-shadow: 0 2px 8px rgba(31, 35, 41, 0.06), 0 0 1px rgba(31, 35, 41, 0.08);
       --dot-color: 255, 255, 255;
       --dot-base-alpha: 0.7;
       --active-dot-color: 255, 255, 255;
@@ -33,8 +36,11 @@
       --input-border: #414855;
       --input-text: #ffffff;
       --placeholder: #757575;
+      --icon-color: #a6a6a6;
       --button-bg: #404040;
+      --button-text: #757575;
       --button-active: #000000;
+      --input-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
       --dot-color: 36, 127, 194;
       --dot-base-alpha: 0.4;
       --active-dot-color: 255, 255, 255, 0.2;
@@ -64,7 +70,7 @@
     }
 
     .particle-ambient-host {
-      --target-height: 120px;
+      --target-height: 52px;
       --source-input-height: 120px;
       --effect-visible-height: 190px;
       --mouse-x: 0.5;
@@ -321,29 +327,27 @@
       z-index: 4;
       width: 100%;
       height: 100%;
-      border: 1px solid var(--input-border);
-      border-radius: 28px;
+      overflow: hidden;
+      border: 0.5px solid var(--input-border);
+      border-radius: 12px;
       background: var(--input-bg);
-      box-shadow: 0 18px 45px rgba(31, 41, 55, 0.08);
-    }
-
-    html[data-theme="dark"] .preview-input-card {
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+      box-shadow: var(--input-shadow);
     }
 
     .preview-input-layout {
-      display: flex;
+      position: relative;
       height: 100%;
-      align-items: flex-end;
-      gap: 12px;
-      padding: 18px;
+      min-height: 52px;
+      padding: 12px 12px 12px 16px;
     }
 
     textarea {
-      flex: 1 1 auto;
+      display: block;
       width: 100%;
-      height: 100%;
-      min-width: 0;
+      height: 24px;
+      margin: 0;
+      padding: 3px 88px 3px 0;
+      overflow: hidden;
       border: 0;
       outline: 0;
       resize: none;
@@ -351,24 +355,50 @@
       color: var(--input-text);
       font: 400 14px/22px "SF Pro Text", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       letter-spacing: 0;
+      white-space: nowrap;
     }
 
     textarea::placeholder {
       color: var(--placeholder);
+      font-style: normal;
+      font-weight: 400;
+      opacity: 1;
+    }
+
+    .action-group {
+      position: absolute;
+      right: 16px;
+      bottom: 12px;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      width: 28px;
+      height: 28px;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      appearance: none;
+      background: transparent;
+      color: var(--icon-color);
+      cursor: pointer;
+      transition: background-color 100ms ease, color 100ms ease, opacity 100ms ease;
+    }
+
+    .icon-button:hover {
+      background: rgba(115, 132, 157, 0.08);
     }
 
     .send-button {
-      display: grid;
-      flex: 0 0 auto;
-      width: 36px;
-      height: 36px;
-      place-items: center;
-      border: 0;
-      border-radius: 999px;
       background: var(--button-bg);
-      color: #ffffff;
-      cursor: pointer;
-      transition: background 200ms ease, color 200ms ease, transform 200ms ease;
+      color: var(--button-text);
+      cursor: default;
     }
 
     .has-value .send-button {
@@ -433,7 +463,7 @@
       .blob,
       .mouse-glow::before,
       .star-field,
-      .send-button {
+      .icon-button {
         animation: none;
         transition: none;
       }
@@ -467,12 +497,20 @@
     <!-- Preview shell only. In production, attach the background layer behind the consumer's real card/input. -->
     <div class="preview-input-card">
       <div class="preview-input-layout">
-        <textarea id="ambientInput" placeholder="Describe what you want to build"></textarea>
-        <button class="send-button" type="button" aria-label="Submit">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M12.656 7.79c.289-.157.469-.46.469-.79s-.18-.632-.469-.789L2.194.547A.899.899 0 0 0 .875 1.336l1.154 4.508 4.908.718c.281 0 .508.196.508.438s-.227.437-.508.437c-2.766.406-4.401.644-4.906.714L.875 12.664c0 .32.164.608.438.773.273.162.602.169.881.017L12.656 7.79Z" fill="currentColor"/>
-          </svg>
-        </button>
+        <textarea id="ambientInput" rows="1" autocomplete="off" spellcheck="false" placeholder="Describe what you want to build"></textarea>
+        <div class="action-group">
+          <button class="icon-button" type="button" aria-label="Voice input">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3.75a3.25 3.25 0 0 0-3.25 3.25v5a3.25 3.25 0 0 0 6.5 0v-5A3.25 3.25 0 0 0 12 3.75Z" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M5.75 11.25v.5a6.25 6.25 0 0 0 12.5 0v-.5M12 18v2.5M8.5 20.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="icon-button send-button" type="button" aria-label="Submit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
