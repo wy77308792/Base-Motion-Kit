@@ -20,7 +20,7 @@
 - Use when: a status label says the AI is thinking, generating, or processing.
 - Avoid when: the text is static helper copy, long paragraph text, or repeated in dense rows.
 - Current implementation: 14px PingFang SC Regular single-line text, light color `#8F959E`, dark color `#757575`, text-clipped white shimmer with 40px visual width, 2000ms sweep, 1000ms pause, and `cubic-bezier(0.5, 0, 0.5, 1)` easing.
-- Production notes: keep the text short, expose label/theme colors as tokens, keep the shine clipped to text glyphs, and disable the shimmer under reduced motion.
+- Production notes: keep the text short, expose label/theme colors as tokens, keep the shine clipped to text glyphs, and disable the shimmer under reduced motion. When changing copy, edit the visible `.thinking-text` content only; the snippet script mirrors it to `data-text` for the shimmer layer.
 - Source file: `snippets/thinking-text-shimmer/index.html`.
 
 ## `layout-loading-loop`

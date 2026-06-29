@@ -108,17 +108,18 @@
   </style>
 </head>
 <body>
-  <span class="thinking-text" id="thinkingText" data-text="编写页面代码中...">编写页面代码中...</span>
+  <span class="thinking-text" id="thinkingText">编写页面代码中...</span>
   <script>
     const thinkingText = document.getElementById("thinkingText");
-    const resize = () => {
+    const syncText = () => {
+      thinkingText.dataset.text = thinkingText.textContent;
       thinkingText.style.setProperty("--text-width", `${thinkingText.getBoundingClientRect().width}px`);
     };
-    resize();
+    syncText();
     if ("ResizeObserver" in window) {
-      new ResizeObserver(resize).observe(thinkingText);
+      new ResizeObserver(syncText).observe(thinkingText);
     } else {
-      window.addEventListener("resize", resize);
+      window.addEventListener("resize", syncText);
     }
   </script>
 </body>
